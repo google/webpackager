@@ -1,5 +1,7 @@
 # Web Packager
 
+[![Build Status](https://travis-ci.org/google/webpackager.svg?branch=master)](https://travis-ci.org/google/webpackager)
+
 Web Packager is a command-line tool to "package" websites in accordance
 with the specifications proposed at [WICG/webpackage][]. It may look like
 [gen-signedexchange][], but is rather *based on* gen-signedexchange and
