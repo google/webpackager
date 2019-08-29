@@ -1,3 +1,3 @@
-module github.com/ampproject/webpackager
+module github.com/google/webpackager
 
 go 1.11
