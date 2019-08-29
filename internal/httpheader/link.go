@@ -79,7 +79,7 @@ func ParseLink(value string) ([]*Link, error) {
 			} else {
 				val := strings.TrimSpace(kv[1])
 				if strings.HasPrefix(val, "\"") {
-					val = strings.ReplaceAll(val[1:len(val)-1], "\\", "")
+					val = strings.Replace(val[1:len(val)-1], "\\", "", -1)
 				}
 				params[key] = val
 			}
