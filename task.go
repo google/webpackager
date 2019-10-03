@@ -19,6 +19,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"time"
 
 	"github.com/WICG/webpackage/go/signedexchange"
 	"github.com/google/webpackager/exchange"
@@ -38,11 +39,16 @@ var (
 type packagerTask struct {
 	*Packager
 	resource *resource.Resource
+	period   *exchange.ValidPeriod
 	Done     bool
 }
 
-func newPackagerTask(pkg *Packager, r *resource.Resource) *packagerTask {
-	return &packagerTask{pkg, r, false}
+func newPackagerTask(pkg *Packager, r *resource.Resource, vp *exchange.ValidPeriod) *packagerTask {
+	return &packagerTask{pkg, r, vp, false}
+}
+
+func (task *packagerTask) date() time.Time {
+	return task.period.Date()
 }
 
 func (task *packagerTask) run() error {
@@ -56,7 +62,7 @@ func (task *packagerTask) run() error {
 		return err
 	}
 	if cached != nil {
-		if _, err := task.ExchangeFactory.Verify(cached.Exchange); err == nil {
+		if _, err := task.ExchangeFactory.Verify(cached.Exchange, task.date()); err == nil {
 			log.Printf("reusing the existing signed exchange for %s", r.RequestURL)
 			*r = *cached
 			return nil
@@ -139,17 +145,17 @@ func (task *packagerTask) createExchange(rawResp *http.Response) (*signedexchang
 
 	for _, p := range sxgResp.Preloads {
 		for _, r := range p.Resources() {
-			task.Packager.run(r)
+			task.Packager.run(r, task.period)
 		}
 	}
 
 	vu := task.resource.ValidityURL
 
-	sxg, err := task.ExchangeFactory.NewExchange(sxgResp, vu)
+	sxg, err := task.ExchangeFactory.NewExchange(sxgResp, task.period, vu)
 	if err != nil {
 		return nil, err
 	}
-	if _, err := task.ExchangeFactory.Verify(sxg); err != nil {
+	if _, err := task.ExchangeFactory.Verify(sxg, task.date()); err != nil {
 		return nil, err
 	}
 

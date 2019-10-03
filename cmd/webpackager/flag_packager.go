@@ -43,8 +43,6 @@ var (
 	// ExchangeFactory
 	flagVersion      = flag.String("version", "1b3", `Signed exchange version.`)
 	flagMIRecordSize = flag.String("mi_record_size", "4096", `Merkle Integration content encoding record size.`)
-	flagDate         = flag.String("date", dateNowString, `Timestamp of signed exchanges in RFC 3339 format ("2006-01-02T15:04:05Z") or "now".`)
-	flagExpiry       = flag.String("expiry", "1h", `Lifetime of signed exchanges. Maximum is "168h".`)
 	flagCertCBOR     = flag.String("cert_cbor", "", `Certificate chain CBOR file. Fetched from --cert_url when unspecified.`)
 	flagCertURL      = flag.String("cert_url", "", `Certficiate chain URL. (required)`)
 	flagPrivateKey   = flag.String("private_key", "", `Private key PEM file. (required)`)
@@ -95,37 +93,6 @@ func parseMIRecordSize(s string) (int, error) {
 	}
 	if v <= 0 {
 		return v, errors.New("value must be positive")
-	}
-	return v, nil
-}
-
-func parseDate(s string) (time.Time, error) {
-	now := time.Now()
-
-	if s == dateNowString {
-		return now, nil
-	}
-
-	t, err := time.Parse(time.RFC3339, s)
-	if err != nil {
-		return now, err
-	}
-	if t.After(now) {
-		return now, errors.New("signing for a future date is disallowed")
-	}
-	return t, nil
-}
-
-func parseExpiry(s string) (time.Duration, error) {
-	v, err := time.ParseDuration(s)
-	if err != nil {
-		return 0, err
-	}
-	if v <= 0 {
-		return 0, errors.New("duration must be positive")
-	}
-	if v > maxExpiry {
-		return 0, errors.New("duration too large")
 	}
 	return v, nil
 }
@@ -187,17 +154,6 @@ func getExchangeFactoryFromFlags(errs *multierror.MultiError) *exchange.Factory 
 	if err != nil {
 		errs.Add(fmt.Errorf("invalid --mi_record_size: %v", err))
 	}
-
-	fty.Date, err = parseDate(*flagDate)
-	if err != nil {
-		errs.Add(fmt.Errorf("invalid --date: %v", err))
-	}
-
-	expiry, err := parseExpiry(*flagExpiry)
-	if err != nil {
-		errs.Add(fmt.Errorf("invalid --expiry: %v", err))
-	}
-	fty.Expires = fty.Date.Add(expiry)
 
 	if *flagCertURL == "" {
 		errs.Add(errors.New("missing --cert_url"))

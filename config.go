@@ -16,6 +16,7 @@ package webpackager
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/google/webpackager/exchange"
 	"github.com/google/webpackager/fetch"
@@ -62,8 +63,7 @@ type Config struct {
 	// ValidityURLRule specifies the rule to determine the validity URL,
 	// where the validity data should be served.
 	//
-	// nil implies validity.AppendExtDotUnixTime(".validity", date), where
-	// date is taken from ExchangeFactory.Date.
+	// nil implies validity.AppendExtDotUnixTime(".validity", time.Now()).
 	ValidityURLRule validity.ValidityURLRule
 
 	// Processor specifies the processor(s) applied to each HTTP response
@@ -110,8 +110,7 @@ func (cfg *Config) populateDefaults() {
 		cfg.PhysicalURLRule = urlrewrite.DefaultRules
 	}
 	if cfg.ValidityURLRule == nil {
-		cfg.ValidityURLRule = validity.AppendExtDotUnixTime(
-			validityExt, cfg.ExchangeFactory.Date)
+		cfg.ValidityURLRule = validity.AppendExtDotUnixTime(validityExt, time.Now())
 	}
 	if cfg.Processor == nil {
 		cfg.Processor = defaultproc.DefaultProcessor

@@ -47,12 +47,13 @@ func TestFactory(t *testing.T) {
 	factory := &exchange.Factory{
 		Version:      version.Version1b3,
 		MIRecordSize: 4096,
-		Date:         time.Date(2019, time.April, 22, 19, 30, 0, 0, time.UTC),
-		Expires:      time.Date(2019, time.April, 29, 19, 30, 0, 0, time.UTC),
 		CertChain:    certtest.ReadCertChainFile("../testdata/certs/test.cbor"),
 		CertURL:      urlutil.MustParse("https://example.org/cert.cbor"),
 		PrivateKey:   certtest.ReadPrivateKeyFile("../testdata/certs/test.key"),
 	}
+	vp := exchange.NewValidPeriod(
+		time.Date(2019, time.April, 22, 19, 30, 0, 0, time.UTC),
+		time.Date(2019, time.April, 29, 19, 30, 0, 0, time.UTC))
 	// Create Response with the content passed to gen-signedexchange.
 	tests := []struct {
 		name     string
@@ -125,7 +126,7 @@ func TestFactory(t *testing.T) {
 			resp := exchangetest.MakeResponse(
 				test.url, fmt.Sprintf("%s\r\n%s", test.respHead, html))
 			resp.Preloads = test.preloads
-			e, err := factory.NewExchange(resp, urlutil.MustParse(test.validity))
+			e, err := factory.NewExchange(resp, vp, urlutil.MustParse(test.validity))
 			if err != nil {
 				t.Fatalf("got error(%q), want success", err)
 			}
@@ -148,7 +149,7 @@ func TestFactory(t *testing.T) {
 				}
 			}
 			// Check Verify succeeds and returns the correct payload.
-			if got, err := factory.Verify(e); err != nil {
+			if got, err := factory.Verify(e, vp.Date()); err != nil {
 				t.Errorf("got error(%q), want success", err)
 			} else {
 				if !bytes.Equal(got, html) {
