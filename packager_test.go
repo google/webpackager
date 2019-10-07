@@ -29,14 +29,17 @@ import (
 	"github.com/google/webpackager/internal/urlutil"
 )
 
+var (
+	date    = time.Date(2019, time.May, 13, 10, 30, 0, 0, time.UTC)
+	expires = time.Date(2019, time.May, 20, 10, 30, 0, 0, time.UTC)
+)
+
 func makeConfig(server *httptest.Server) webpackager.Config {
 	return webpackager.Config{
 		FetchClient: fetchtest.NewFetchClient(server),
 		ExchangeFactory: &exchange.Factory{
 			Version:      version.Version1b3,
 			MIRecordSize: 4096,
-			Date:         time.Date(2019, time.May, 13, 10, 30, 0, 0, time.UTC),
-			Expires:      time.Date(2019, time.May, 20, 10, 30, 0, 0, time.UTC),
 			CertChain:    certtest.ReadCertChainFile("testdata/certs/test.cbor"),
 			CertURL:      urlutil.MustParse("https://example.org/cert.cbor"),
 			PrivateKey:   certtest.ReadPrivateKeyFile("testdata/certs/test.key"),
@@ -60,7 +63,8 @@ func TestSameDomain(t *testing.T) {
 	defer server.Close()
 
 	pkg := webpackager.NewPackager(makeConfig(server))
-	pkg.Run(urlutil.MustParse("https://example.org/hello.html"))
+	pkg.Run(urlutil.MustParse("https://example.org/hello.html"),
+		exchange.NewValidPeriod(date, expires))
 
 	// style.css is on the same domain thus fetched.
 	verifyRequests(t, pkg, []string{
@@ -68,11 +72,11 @@ func TestSameDomain(t *testing.T) {
 		"https://example.org/style.css",
 	})
 	// Exchanges are generated with preloading.
-	verifyExchange(t, pkg, "https://example.org/hello.html", fmt.Sprint(
+	verifyExchange(t, pkg, "https://example.org/hello.html", date, fmt.Sprint(
 		`<https://example.org/style.css>;rel="allowed-alt-sxg";`+
 			`header-integrity="sha256-+Xd20Pyxhd3oSvNo2ucj9gdj7ZkHavIaDGkucYF76J8=",`,
 		`<https://example.org/style.css>;rel="preload";as="style"`))
-	verifyExchange(t, pkg, "https://example.org/style.css", "")
+	verifyExchange(t, pkg, "https://example.org/style.css", date, "")
 }
 
 func TestCrossDomain(t *testing.T) {
@@ -91,7 +95,8 @@ func TestCrossDomain(t *testing.T) {
 	defer server.Close()
 
 	pkg := webpackager.NewPackager(makeConfig(server))
-	pkg.Run(urlutil.MustParse("https://example.org/hello.html"))
+	pkg.Run(urlutil.MustParse("https://example.org/hello.html"),
+		exchange.NewValidPeriod(date, expires))
 
 	// style.css is on a cross origin and not fetched: DefaultProcessor
 	// includes RequireSameOrigin.
@@ -99,7 +104,7 @@ func TestCrossDomain(t *testing.T) {
 		"https://example.org/hello.html",
 	})
 	// An exchange is generated without preloading.
-	verifyExchange(t, pkg, "https://example.org/hello.html", "")
+	verifyExchange(t, pkg, "https://example.org/hello.html", date, "")
 }
 
 func TestDupResource(t *testing.T) {
@@ -122,8 +127,10 @@ func TestDupResource(t *testing.T) {
 	defer server.Close()
 
 	pkg := webpackager.NewPackager(makeConfig(server))
-	pkg.Run(urlutil.MustParse("https://example.org/hello.html"))
-	pkg.Run(urlutil.MustParse("https://example.org/quick.html"))
+	pkg.Run(urlutil.MustParse("https://example.org/hello.html"),
+		exchange.NewValidPeriod(date, expires))
+	pkg.Run(urlutil.MustParse("https://example.org/quick.html"),
+		exchange.NewValidPeriod(date, expires))
 
 	// style.css should be fetched only once.
 	verifyRequests(t, pkg, []string{
@@ -132,15 +139,15 @@ func TestDupResource(t *testing.T) {
 		"https://example.org/quick.html",
 	})
 	// Exchanges are generated with preloading.
-	verifyExchange(t, pkg, "https://example.org/hello.html", fmt.Sprint(
+	verifyExchange(t, pkg, "https://example.org/hello.html", date, fmt.Sprint(
 		`<https://example.org/style.css>;rel="allowed-alt-sxg";`+
 			`header-integrity="sha256-+Xd20Pyxhd3oSvNo2ucj9gdj7ZkHavIaDGkucYF76J8=",`,
 		`<https://example.org/style.css>;rel="preload";as="style"`))
-	verifyExchange(t, pkg, "https://example.org/quick.html", fmt.Sprint(
+	verifyExchange(t, pkg, "https://example.org/quick.html", date, fmt.Sprint(
 		`<https://example.org/style.css>;rel="allowed-alt-sxg";`+
 			`header-integrity="sha256-+Xd20Pyxhd3oSvNo2ucj9gdj7ZkHavIaDGkucYF76J8=",`,
 		`<https://example.org/style.css>;rel="preload";as="style"`))
-	verifyExchange(t, pkg, "https://example.org/style.css", "")
+	verifyExchange(t, pkg, "https://example.org/style.css", date, "")
 }
 
 func TestRequestHeader(t *testing.T) {
@@ -164,7 +171,8 @@ func TestRequestHeader(t *testing.T) {
 	config := makeConfig(server)
 	config.RequestHeader = header
 	pkg := webpackager.NewPackager(config)
-	pkg.Run(urlutil.MustParse("https://example.org/hello.html"))
+	pkg.Run(urlutil.MustParse("https://example.org/hello.html"),
+		exchange.NewValidPeriod(date, expires))
 
 	for _, req := range pkg.FetchClient.(*fetchtest.FetchClient).Requests() {
 		if got := req.Header.Get("User-Agent"); got != dummyUA {
@@ -207,7 +215,7 @@ func TestNoExchanges(t *testing.T) {
 			url := urlutil.MustParse(test.url)
 
 			pkg := webpackager.NewPackager(makeConfig(server))
-			pkg.Run(url)
+			pkg.Run(url, exchange.NewValidPeriod(date, expires))
 
 			req, err := http.NewRequest(http.MethodGet, test.url, nil)
 			if err != nil {

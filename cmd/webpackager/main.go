@@ -38,10 +38,15 @@ func run() error {
 	if err != nil {
 		return err
 	}
+	vp, err := getValidPeriodFromFlags()
+	if err != nil {
+		return err
+	}
+
 	pkg := webpackager.NewPackager(*cfg)
 
 	for _, u := range urls {
-		pkg.Run(u)
+		pkg.Run(u, vp)
 	}
 
 	return pkg.Err()

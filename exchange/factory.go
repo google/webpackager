@@ -39,8 +39,8 @@ type Factory struct {
 	PrivateKey   crypto.PrivateKey
 }
 
-// NewExchange generates a signed exchange from resp and validityURL.
-func (fty *Factory) NewExchange(resp *Response, validityURL *url.URL) (*signedexchange.Exchange, error) {
+// NewExchange generates a signed exchange from resp, vp, and validityURL.
+func (fty *Factory) NewExchange(resp *Response, vp *ValidPeriod, validityURL *url.URL) (*signedexchange.Exchange, error) {
 	e := signedexchange.NewExchange(
 		fty.Version,
 		resp.Request.URL.String(),
@@ -54,8 +54,8 @@ func (fty *Factory) NewExchange(resp *Response, validityURL *url.URL) (*signedex
 	}
 
 	signer := &signedexchange.Signer{
-		Date:        fty.Date,
-		Expires:     fty.Expires,
+		Date:        vp.Date(),
+		Expires:     vp.Expires(),
 		Certs:       certutil.GetCertificates(fty.CertChain),
 		CertUrl:     fty.CertURL,
 		ValidityUrl: validityURL,
@@ -68,13 +68,13 @@ func (fty *Factory) NewExchange(resp *Response, validityURL *url.URL) (*signedex
 	return e, nil
 }
 
-// Verify validates the provided signed exchange e. It returns the payload
-// decoded from e on success.
-func (fty *Factory) Verify(e *signedexchange.Exchange) ([]byte, error) {
+// Verify validates the provided signed exchange e at the provided date.
+// It returns the payload decoded from e on success.
+func (fty *Factory) Verify(e *signedexchange.Exchange, date time.Time) ([]byte, error) {
 	var logText strings.Builder
 
 	payload, ok := e.Verify(
-		fty.Date,
+		date,
 		certutil.FakeCertFetcher(fty.CertChain, fty.CertURL),
 		log.New(&logText, "", 0))
 	if !ok {

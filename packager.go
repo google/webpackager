@@ -20,6 +20,7 @@ import (
 	"log"
 	"net/url"
 
+	"github.com/google/webpackager/exchange"
 	"github.com/google/webpackager/internal/multierror"
 	"github.com/google/webpackager/resource"
 )
@@ -57,8 +58,8 @@ func NewPackager(config Config) *Packager {
 //
 // Errors encountered during the process is accumulated inside the Packager
 // and accessible through Err.
-func (pkg *Packager) Run(url *url.URL) {
-	pkg.run(resource.NewResource(url))
+func (pkg *Packager) Run(url *url.URL, vp *exchange.ValidPeriod) {
+	pkg.run(resource.NewResource(url), vp)
 }
 
 // Err returns an error containing all errors encountered in past Run calls.
@@ -66,15 +67,15 @@ func (pkg *Packager) Err() error {
 	return pkg.errs.Err()
 }
 
-func (pkg *Packager) run(r *resource.Resource) {
-	if err := pkg.runTask(r); err != nil {
+func (pkg *Packager) run(r *resource.Resource, vp *exchange.ValidPeriod) {
+	if err := pkg.runTask(r, vp); err != nil {
 		err = fmt.Errorf("error with processing %v: %v", r.RequestURL, err)
 		pkg.errs.Add(err)
 		log.Print(err)
 	}
 }
 
-func (pkg *Packager) runTask(r *resource.Resource) error {
+func (pkg *Packager) runTask(r *resource.Resource, vp *exchange.ValidPeriod) error {
 	url := r.RequestURL.String()
 
 	if task := pkg.tasks[url]; task != nil {
@@ -87,6 +88,6 @@ func (pkg *Packager) runTask(r *resource.Resource) error {
 	}
 
 	log.Printf("processing %v ...", url)
-	pkg.tasks[url] = newPackagerTask(pkg, r)
+	pkg.tasks[url] = newPackagerTask(pkg, r, vp)
 	return pkg.tasks[url].run()
 }

@@ -20,6 +20,7 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/google/webpackager"
 	"github.com/google/webpackager/fetch/fetchtest"
@@ -52,7 +53,7 @@ func stubHandler(status int, text, ctype string) http.Handler {
 	)
 }
 
-func verifyExchange(t *testing.T, pkg *webpackager.Packager, url, link string) {
+func verifyExchange(t *testing.T, pkg *webpackager.Packager, url string, date time.Time, link string) {
 	t.Helper()
 
 	req, err := http.NewRequest(http.MethodGet, url, nil)
@@ -74,7 +75,7 @@ func verifyExchange(t *testing.T, pkg *webpackager.Packager, url, link string) {
 		return
 	}
 
-	if _, err := pkg.ExchangeFactory.Verify(r.Exchange); err != nil {
+	if _, err := pkg.ExchangeFactory.Verify(r.Exchange, date); err != nil {
 		t.Errorf("Verify(sxg[%q]) = error(%q), want success", url, err)
 	}
 	if got := strings.Join(r.Exchange.ResponseHeaders["Link"], ","); got != link {
