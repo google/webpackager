@@ -24,7 +24,7 @@ import (
 	"github.com/google/webpackager/processor/commonproc"
 )
 
-func TestDropDisallowedHeaders(t *testing.T) {
+func TestRemoveUncachedHeaders(t *testing.T) {
 	respText := fmt.Sprint(
 		"HTTP/1.1 200 OK\r\n",
 		"Cache-Control: public, max-age=604800\r\n",
@@ -39,7 +39,7 @@ func TestDropDisallowedHeaders(t *testing.T) {
 	resp := exchangetest.MakeResponse(
 		"https://example.org/hello.html", respText)
 
-	if err := commonproc.DropDisallowedHeaders.Process(resp); err != nil {
+	if err := commonproc.RemoveUncachedHeaders.Process(resp); err != nil {
 		t.Errorf("got error(%q), want success", err)
 	}
 
