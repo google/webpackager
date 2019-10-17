@@ -54,9 +54,13 @@ var RemoveUncachedHeaders processor.Processor = &removeUncachedHeaders{}
 type removeUncachedHeaders struct{}
 
 func (*removeUncachedHeaders) Process(resp *exchange.Response) error {
-	// TODO:
 	for _, name := range uncachedHeaders {
 		resp.Header.Del(name)
 	}
+	// TODO(yuizumi): Remove the header fields specified to the no-cache
+	// directive in the Cache-Control header.
+	// NOTE(yuizumi): We should also remove the header fields specified in
+	// the Connection header, but in practice it can be either "keep-alive"
+	// (included in uncachedHeaders) or "close" (not a header field).
 	return nil
 }
