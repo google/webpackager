@@ -54,6 +54,7 @@ var (
 	Postprocessors = processor.SequentialProcessor{
 		commonproc.ApplySameOriginPolicy,
 		commonproc.ContentTypeProcessor,
+		commonproc.RemoveUncachedHeaders,
 	}
 )
 
