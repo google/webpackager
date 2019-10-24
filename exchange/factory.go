@@ -32,8 +32,6 @@ import (
 type Factory struct {
 	Version      version.Version
 	MIRecordSize int
-	Date         time.Time
-	Expires      time.Time
 	CertChain    certurl.CertChain
 	CertURL      *url.URL
 	PrivateKey   crypto.PrivateKey
