@@ -35,7 +35,7 @@ type FetchClient interface {
 
 // DefaultFetchClient is a drop-in FetchClient to fetch content via HTTP in
 // a usual manner.
-var DefaultFetchClient = &http.Client{CheckRedirect: NeverRedirect}
+var DefaultFetchClient FetchClient = &http.Client{CheckRedirect: NeverRedirect}
 
 // NeverRedirect instructs http.Client to stop handling the redirect and just
 // return the last response instead, when set to the CheckRedirect field.
