@@ -15,37 +15,28 @@
 package webpackager
 
 import (
-	"errors"
-	"fmt"
-	"log"
+	"net/http"
 	"net/url"
 
 	"github.com/google/webpackager/exchange"
-	"github.com/google/webpackager/internal/multierror"
 	"github.com/google/webpackager/resource"
-)
-
-var (
-	errReferenceLoop = errors.New("detected cyclic reference")
 )
 
 // Packager implements the control flow of Web Packager.
 type Packager struct {
 	Config
-	tasks map[string]*packagerTask
-	errs  *multierror.MultiError
 }
 
 // NewPackager creates and initializes a new Packager with the provided
 // Config. It panics when config.ExchangeFactory is nil.
 func NewPackager(config Config) *Packager {
 	config.populateDefaults()
-	return &Packager{
-		config,
-		make(map[string]*packagerTask),
-		&multierror.MultiError{},
-	}
+	return &Packager{config}
 }
+
+// BUG(yuizumi): The error from Packager is currently not structured.
+// In particular, the caller cannot tell which resource(s) the Packager had
+// a problem with.
 
 // Run runs the process to obtain the signed exchange for url: fetches the
 // content from the server, processes it, and produces the signed exchange
@@ -53,41 +44,29 @@ func NewPackager(config Config) *Packager {
 // referenced from the fetched content), such as stylesheets, provided they
 // are good for preloading.
 //
+// The process stops when it encounters any error with processing the main
+// resource (specified by url), but keeps running and produces the signed
+// exchange for the main resource if it just fails with the subresources.
+// In either case, Run returns a non-nil error. All errors encountered with
+// subresources are coupled into a single error value.
+//
 // Run does not run the process when ResourceCache already has an entry for
 // url.
+func (pkg *Packager) Run(url *url.URL, vp *exchange.ValidPeriod) error {
+	req, err := newGetRequest(url)
+	if err != nil {
+		return err
+	}
+	return pkg.RunForRequest(req, vp)
+}
+
+// RunForRequest is like Run, but takes an http.Request instead of a URL
+// thus provides more flexibility to the caller.
 //
-// Errors encountered during the process is accumulated inside the Packager
-// and accessible through Err.
-func (pkg *Packager) Run(url *url.URL, vp *exchange.ValidPeriod) {
-	pkg.run(resource.NewResource(url), vp)
-}
-
-// Err returns an error containing all errors encountered in past Run calls.
-func (pkg *Packager) Err() error {
-	return pkg.errs.Err()
-}
-
-func (pkg *Packager) run(r *resource.Resource, vp *exchange.ValidPeriod) {
-	if err := pkg.runTask(r, vp); err != nil {
-		err = fmt.Errorf("error with processing %v: %v", r.RequestURL, err)
-		pkg.errs.Add(err)
-		log.Print(err)
-	}
-}
-
-func (pkg *Packager) runTask(r *resource.Resource, vp *exchange.ValidPeriod) error {
-	url := r.RequestURL.String()
-
-	if task := pkg.tasks[url]; task != nil {
-		if task.Done {
-			*r = *task.resource
-			return nil
-		} else {
-			return errReferenceLoop
-		}
-	}
-
-	log.Printf("processing %v ...", url)
-	pkg.tasks[url] = newPackagerTask(pkg, r, vp)
-	return pkg.tasks[url].run()
+// RunForRequest uses req directly: RequestTweaker mutates req; FetchClient
+// sends req to retrieve the HTTP response.
+func (pkg *Packager) RunForRequest(req *http.Request, vp *exchange.ValidPeriod) error {
+	runner := newTaskRunner(pkg, vp)
+	runner.run(nil, req, resource.NewResource(req.URL))
+	return runner.err()
 }

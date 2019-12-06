@@ -24,6 +24,7 @@ import (
 	"github.com/WICG/webpackage/go/signedexchange/version"
 	"github.com/google/webpackager"
 	"github.com/google/webpackager/exchange"
+	"github.com/google/webpackager/fetch"
 	"github.com/google/webpackager/fetch/fetchtest"
 	"github.com/google/webpackager/internal/certutil/certtest"
 	"github.com/google/webpackager/internal/urlutil"
@@ -150,7 +151,7 @@ func TestDupResource(t *testing.T) {
 	verifyExchange(t, pkg, "https://example.org/style.css", date, "")
 }
 
-func TestRequestHeader(t *testing.T) {
+func TestRequestTweaker(t *testing.T) {
 	handlers := http.NewServeMux()
 	handlers.Handle(
 		"example.org/hello.html",
@@ -169,7 +170,7 @@ func TestRequestHeader(t *testing.T) {
 	header.Set("User-Agent", dummyUA)
 
 	config := makeConfig(server)
-	config.RequestHeader = header
+	config.RequestTweaker = fetch.SetCustomHeaders(header)
 	pkg := webpackager.NewPackager(config)
 	pkg.Run(urlutil.MustParse("https://example.org/hello.html"),
 		exchange.NewValidPeriod(date, expires))

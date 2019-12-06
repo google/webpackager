@@ -15,7 +15,6 @@
 package webpackager
 
 import (
-	"net/http"
 	"time"
 
 	"github.com/google/webpackager/exchange"
@@ -31,17 +30,14 @@ const validityExt = ".validity"
 
 // Config defines injection points to Packager.
 type Config struct {
-	// RequestHeader specifies HTTP headers added to every request issued
-	// from Packager.
+	// RequestTweaker specifies the mutation applied to every http.Request
+	// before it is passed to FetchClient. RequestTweaker is applied
+	// both to the http.Request instances passed to the Packager and those
+	// generated internally (e.g. for subresources). Note that, however,
+	// some RequestTweakers have effect only to subresource requests.
 	//
-	// Note empty RequestHeader does not imply requests sent without any
-	// header fields: http.NewRequest sets a few headers automatically
-	// (such as "User-Agent"). RequestHeader takes the precedence over
-	// those automatic headers; setting their value to nil suppresses the
-	// automatic headers in particular.
-	//
-	// nil implies empty Header.
-	RequestHeader http.Header
+	// nil implies fetch.DefaultRequestTweaker.
+	RequestTweaker fetch.RequestTweaker
 
 	// FetchClient specifies how to retrieve the resources which Packager
 	// produces the signed exchanges for.
@@ -100,8 +96,8 @@ func (cfg *Config) populateDefaults() {
 	if cfg.ExchangeFactory == nil {
 		panic("ExchangeFactory can't be nil")
 	}
-	if cfg.RequestHeader == nil {
-		cfg.RequestHeader = make(http.Header)
+	if cfg.RequestTweaker == nil {
+		cfg.RequestTweaker = fetch.DefaultRequestTweaker
 	}
 	if cfg.FetchClient == nil {
 		cfg.FetchClient = fetch.DefaultFetchClient

@@ -15,6 +15,7 @@
 package webpackager
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -23,6 +24,7 @@ import (
 
 	"github.com/WICG/webpackage/go/signedexchange"
 	"github.com/google/webpackager/exchange"
+	"github.com/google/webpackager/internal/multierror"
 	"github.com/google/webpackager/resource"
 )
 
@@ -34,17 +36,64 @@ var (
 		http.StatusTemporaryRedirect: true, // 307
 		http.StatusPermanentRedirect: true, // 308
 	}
+
+	errReferenceLoop = errors.New("detected cyclic reference")
 )
 
-type packagerTask struct {
+type packagerTaskRunner struct {
 	*Packager
-	resource *resource.Resource
-	period   *exchange.ValidPeriod
-	Done     bool
+
+	period *exchange.ValidPeriod
+	errs   *multierror.MultiError
+	active map[string]bool // Keyed by URLs.
 }
 
-func newPackagerTask(pkg *Packager, r *resource.Resource, vp *exchange.ValidPeriod) *packagerTask {
-	return &packagerTask{pkg, r, vp, false}
+func newTaskRunner(p *Packager, vp *exchange.ValidPeriod) *packagerTaskRunner {
+	return &packagerTaskRunner{
+		p,
+		vp,
+		&multierror.MultiError{},
+		make(map[string]bool),
+	}
+}
+
+func (runner *packagerTaskRunner) err() error {
+	return runner.errs.Err()
+}
+
+func (runner *packagerTaskRunner) run(parent *packagerTask, req *http.Request, r *resource.Resource) {
+	url := r.RequestURL.String()
+	var err error
+
+	if runner.active[url] {
+		err = errReferenceLoop
+	} else {
+		log.Printf("processing %v ...", url)
+		runner.active[url] = true
+		err = (&packagerTask{runner, parent, req, r}).run()
+		delete(runner.active, url)
+	}
+
+	if err != nil {
+		err = fmt.Errorf("error with processing %s: %v", url, err)
+		runner.errs.Add(err)
+		log.Print(err)
+	}
+}
+
+type packagerTask struct {
+	*packagerTaskRunner
+
+	parent   *packagerTask
+	request  *http.Request
+	resource *resource.Resource
+}
+
+func (task *packagerTask) parentRequest() *http.Request {
+	if task.parent == nil {
+		return nil
+	}
+	return task.parent.request
 }
 
 func (task *packagerTask) date() time.Time {
@@ -52,10 +101,12 @@ func (task *packagerTask) date() time.Time {
 }
 
 func (task *packagerTask) run() error {
-	defer (func() { task.Done = true })()
 	r := task.resource
 
-	req := task.makeRequest(r.RequestURL)
+	req := task.request
+	if err := task.RequestTweaker.Tweak(req, task.parentRequest()); err != nil {
+		return err
+	}
 
 	cached, err := task.ResourceCache.Lookup(req)
 	if err != nil {
@@ -110,19 +161,6 @@ func (task *packagerTask) run() error {
 	return task.ResourceCache.Store(r)
 }
 
-func (task *packagerTask) makeRequest(url *url.URL) *http.Request {
-	// NewRequest is expected always successful: method is http.MethodGet
-	// thus always valid; url is already parsed value.
-	req, err := http.NewRequest(http.MethodGet, url.String(), nil)
-	if err != nil {
-		panic(err)
-	}
-	for k, v := range task.RequestHeader {
-		req.Header[k] = v
-	}
-	return req
-}
-
 func (task *packagerTask) getPhysicalURL(r *resource.Resource, resp *http.Response) (*url.URL, error) {
 	u := new(url.URL)
 	*u = *r.RequestURL
@@ -145,7 +183,11 @@ func (task *packagerTask) createExchange(rawResp *http.Response) (*signedexchang
 
 	for _, p := range sxgResp.Preloads {
 		for _, r := range p.Resources() {
-			task.Packager.run(r, task.period)
+			req, err := newGetRequest(r.RequestURL)
+			if err != nil {
+				return nil, err
+			}
+			task.packagerTaskRunner.run(task, req, r)
 		}
 	}
 
