@@ -24,7 +24,7 @@ import (
 	"os"
 
 	"github.com/google/webpackager"
-	"github.com/google/webpackager/internal/multierror"
+	multierror "github.com/hashicorp/go-multierror"
 )
 
 func run() error {
@@ -44,18 +44,18 @@ func run() error {
 	}
 
 	pkg := webpackager.NewPackager(*cfg)
-	var errs multierror.MultiError
+	errs := new(multierror.Error)
 
 	for _, u := range urls {
 		if err := pkg.Run(u, vp); err != nil {
-			errs.Add(err)
+			errs = multierror.Append(errs, err)
 		}
 	}
-	return errs.Err()
+	return errs.ErrorOrNil()
 }
 
 func printError(err error) {
-	if me, ok := err.(*multierror.MultiError); ok {
+	if me, ok := err.(*multierror.Error); ok {
 		for _, err := range me.Errors {
 			printError(err)
 		}

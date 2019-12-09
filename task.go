@@ -24,8 +24,8 @@ import (
 
 	"github.com/WICG/webpackage/go/signedexchange"
 	"github.com/google/webpackager/exchange"
-	"github.com/google/webpackager/internal/multierror"
 	"github.com/google/webpackager/resource"
+	multierror "github.com/hashicorp/go-multierror"
 )
 
 var (
@@ -44,7 +44,7 @@ type packagerTaskRunner struct {
 	*Packager
 
 	period *exchange.ValidPeriod
-	errs   *multierror.MultiError
+	errs   *multierror.Error
 	active map[string]bool // Keyed by URLs.
 }
 
@@ -52,13 +52,13 @@ func newTaskRunner(p *Packager, vp *exchange.ValidPeriod) *packagerTaskRunner {
 	return &packagerTaskRunner{
 		p,
 		vp,
-		&multierror.MultiError{},
+		new(multierror.Error),
 		make(map[string]bool),
 	}
 }
 
 func (runner *packagerTaskRunner) err() error {
-	return runner.errs.Err()
+	return runner.errs.ErrorOrNil()
 }
 
 func (runner *packagerTaskRunner) run(parent *packagerTask, req *http.Request, r *resource.Resource) {
@@ -76,7 +76,7 @@ func (runner *packagerTaskRunner) run(parent *packagerTask, req *http.Request, r
 
 	if err != nil {
 		err = fmt.Errorf("error with processing %s: %v", url, err)
-		runner.errs.Add(err)
+		runner.errs = multierror.Append(runner.errs, err)
 		log.Print(err)
 	}
 }
