@@ -30,11 +30,11 @@ import (
 	"github.com/google/webpackager/fetch"
 	"github.com/google/webpackager/internal/certutil"
 	"github.com/google/webpackager/internal/customflag"
-	"github.com/google/webpackager/internal/multierror"
 	"github.com/google/webpackager/resource/cache"
 	"github.com/google/webpackager/resource/cache/filewrite"
 	"github.com/google/webpackager/urlrewrite"
 	"github.com/google/webpackager/validity"
+	multierror "github.com/hashicorp/go-multierror"
 )
 
 var (
@@ -64,15 +64,22 @@ const (
 )
 
 func getConfigFromFlags() (*webpackager.Config, error) {
-	var errs multierror.MultiError
-	cfg := &webpackager.Config{
-		RequestTweaker:  getRequestTweakerFromFlags(&errs),
-		PhysicalURLRule: getPhysicalURLRuleFromFlags(&errs),
-		ValidityURLRule: getValidityURLRuleFromFlags(&errs),
-		ExchangeFactory: getExchangeFactoryFromFlags(&errs),
-		ResourceCache:   getResourceCacheFromFlags(&errs),
-	}
-	if err := errs.Err(); err != nil {
+	cfg := new(webpackager.Config)
+	var err error
+	errs := new(multierror.Error)
+
+	cfg.RequestTweaker, err = getRequestTweakerFromFlags()
+	errs = multierror.Append(errs, err)
+	cfg.PhysicalURLRule, err = getPhysicalURLRuleFromFlags()
+	errs = multierror.Append(errs, err)
+	cfg.ValidityURLRule, err = getValidityURLRuleFromFlags()
+	errs = multierror.Append(errs, err)
+	cfg.ExchangeFactory, err = getExchangeFactoryFromFlags()
+	errs = multierror.Append(errs, err)
+	cfg.ResourceCache, err = getResourceCacheFromFlags()
+	errs = multierror.Append(errs, err)
+
+	if err := errs.ErrorOrNil(); err != nil {
 		return nil, err
 	}
 	return cfg, nil
@@ -109,8 +116,9 @@ func parseCertURL(s string) (*url.URL, error) {
 	return u, nil
 }
 
-func getRequestTweakerFromFlags(errs *multierror.MultiError) fetch.RequestTweaker {
-	header := http.Header{}
+func getRequestTweakerFromFlags() (fetch.RequestTweaker, error) {
+	header := make(http.Header)
+	errs := new(multierror.Error)
 
 	for _, s := range *flagRequestHeader {
 		chunks := strings.SplitN(s, ":", 2)
@@ -119,55 +127,60 @@ func getRequestTweakerFromFlags(errs *multierror.MultiError) fetch.RequestTweake
 			val := strings.TrimSpace(chunks[1])
 			header.Add(key, val)
 		} else {
-			errs.Add(fmt.Errorf("invalid --request_header %q", s))
+			errs = multierror.Append(
+				errs, fmt.Errorf("invalid --request_header %q", s))
 		}
 	}
 
-	if len(header) == 0 {
-		return fetch.DefaultRequestTweaker
+	if err := errs.ErrorOrNil(); err != nil {
+		return nil, err
 	}
-	return fetch.RequestTweakerSequence{
-		fetch.DefaultRequestTweaker,
-		fetch.SetCustomHeaders(header),
+
+	t := fetch.DefaultRequestTweaker
+	if len(header) != 0 {
+		t = fetch.RequestTweakerSequence{t, fetch.SetCustomHeaders(header)}
 	}
+	return t, nil
 }
 
-func getPhysicalURLRuleFromFlags(errs *multierror.MultiError) urlrewrite.Rule {
-	return urlrewrite.RuleSequence{
+func getPhysicalURLRuleFromFlags() (urlrewrite.Rule, error) {
+	rule := urlrewrite.RuleSequence{
 		urlrewrite.CleanPath(),
 		urlrewrite.IndexRule(*flagIndexFile),
 	}
+	return rule, nil
 }
 
-func getValidityURLRuleFromFlags(errs *multierror.MultiError) validity.ValidityURLRule {
+func getValidityURLRuleFromFlags() (validity.ValidityURLRule, error) {
 	// err will be logged in getExchangeFactoryFromFlags().
 	date, err := parseDate(*flagDate)
 	if err != nil {
 		date = time.Now()
 	}
-	return validity.AppendExtDotUnixTime(*flagValidityExt, date)
+	return validity.AppendExtDotUnixTime(*flagValidityExt, date), nil
 }
 
-func getExchangeFactoryFromFlags(errs *multierror.MultiError) *exchange.Factory {
-	fty := &exchange.Factory{}
+func getExchangeFactoryFromFlags() (*exchange.Factory, error) {
+	fty := new(exchange.Factory)
 	var err error
+	errs := new(multierror.Error)
 
 	fty.Version, err = parseVersion(*flagVersion)
 	if err != nil {
-		errs.Add(fmt.Errorf("invalid --version: %v", err))
+		errs = multierror.Append(errs, fmt.Errorf("invalid --version: %v", err))
 	}
 
 	fty.MIRecordSize, err = parseMIRecordSize(*flagMIRecordSize)
 	if err != nil {
-		errs.Add(fmt.Errorf("invalid --mi_record_size: %v", err))
+		errs = multierror.Append(errs, fmt.Errorf("invalid --mi_record_size: %v", err))
 	}
 
 	if *flagCertURL == "" {
-		errs.Add(errors.New("missing --cert_url"))
+		errs = multierror.Append(errs, errors.New("missing --cert_url"))
 	} else {
 		fty.CertURL, err = parseCertURL(*flagCertURL)
 		if err != nil {
-			errs.Add(fmt.Errorf("invalid --cert_url: %v", err))
+			errs = multierror.Append(errs, fmt.Errorf("invalid --cert_url: %v", err))
 		}
 	}
 
@@ -180,22 +193,25 @@ func getExchangeFactoryFromFlags(errs *multierror.MultiError) *exchange.Factory 
 		certChainSource = fty.CertURL.String()
 	}
 	if err != nil {
-		errs.Add(fmt.Errorf("failed to load cert chain from %q: %v", certChainSource, err))
+		errs = multierror.Append(errs, fmt.Errorf("failed to load cert chain from %q: %v", certChainSource, err))
 	}
 
 	if *flagPrivateKey == "" {
-		errs.Add(errors.New("missing --private_key"))
+		errs = multierror.Append(errs, errors.New("missing --private_key"))
 	} else {
 		fty.PrivateKey, err = certutil.ReadPrivateKeyFile(*flagPrivateKey)
 		if err != nil {
-			errs.Add(fmt.Errorf("failed to load private key from %q: %v", *flagPrivateKey, err))
+			errs = multierror.Append(errs, fmt.Errorf("failed to load private key from %q: %v", *flagPrivateKey, err))
 		}
 	}
 
-	return fty
+	if err := errs.ErrorOrNil(); err != nil {
+		return nil, err
+	}
+	return fty, err
 }
 
-func getResourceCacheFromFlags(errs *multierror.MultiError) cache.ResourceCache {
+func getResourceCacheFromFlags() (cache.ResourceCache, error) {
 	config := filewrite.Config{BaseCache: cache.NewOnMemoryCache()}
 
 	if *flagSXGDir != "" {
@@ -205,8 +221,8 @@ func getResourceCacheFromFlags(errs *multierror.MultiError) cache.ResourceCache 
 		)
 	}
 	if *flagValidityDir != "" {
-		errs.Add(errors.New("--validity_dir is not implemented yet"))
+		return nil, errors.New("--validity_dir is not implemented yet")
 	}
 
-	return filewrite.NewFileWriteCache(config)
+	return filewrite.NewFileWriteCache(config), nil
 }

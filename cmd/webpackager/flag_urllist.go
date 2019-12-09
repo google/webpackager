@@ -24,7 +24,7 @@ import (
 	"strings"
 
 	"github.com/google/webpackager/internal/customflag"
-	"github.com/google/webpackager/internal/multierror"
+	multierror "github.com/hashicorp/go-multierror"
 )
 
 var (
@@ -41,7 +41,7 @@ func getURLListFromFlags() ([]*url.URL, error) {
 		return nil, errors.New("no urls to process")
 	}
 
-	var errs multierror.MultiError
+	errs := new(multierror.Error)
 
 	urls := make([]*url.URL, len(unparsed))
 	for i, s := range unparsed {
@@ -50,10 +50,10 @@ func getURLListFromFlags() ([]*url.URL, error) {
 			if uerr, ok := err.(*url.Error); ok {
 				err = uerr.Err
 			}
-			errs.Add(fmt.Errorf("malformed url %q: %v", s, err))
+			errs = multierror.Append(errs, fmt.Errorf("malformed url %q: %v", s, err))
 		}
 	}
-	if err := errs.Err(); err != nil {
+	if err := errs.ErrorOrNil(); err != nil {
 		return nil, err
 	}
 	return urls, nil

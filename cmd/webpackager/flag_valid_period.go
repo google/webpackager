@@ -21,7 +21,7 @@ import (
 	"time"
 
 	"github.com/google/webpackager/exchange"
-	"github.com/google/webpackager/internal/multierror"
+	multierror "github.com/hashicorp/go-multierror"
 )
 
 var (
@@ -30,19 +30,19 @@ var (
 )
 
 func getValidPeriodFromFlags() (*exchange.ValidPeriod, error) {
-	var errs multierror.MultiError
+	errs := new(multierror.Error)
 
 	date, err := parseDate(*flagDate)
 	if err != nil {
-		errs.Add(fmt.Errorf("invalid --date: %v", err))
+		errs = multierror.Append(errs, fmt.Errorf("invalid --date: %v", err))
 	}
 
 	lifetime, err := parseExpiry(*flagExpiry)
 	if err != nil {
-		errs.Add(fmt.Errorf("invalid --expiry: %v", err))
+		errs = multierror.Append(errs, fmt.Errorf("invalid --expiry: %v", err))
 	}
 
-	if err := errs.Err(); err != nil {
+	if err := errs.ErrorOrNil(); err != nil {
 		return nil, err
 	}
 

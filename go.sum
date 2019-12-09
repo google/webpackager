@@ -1,6 +1,10 @@
 github.com/WICG/webpackage v0.0.0-20191016013715-95aeed7a5d9e h1:2FxFfmSfSdFLfus97W0kGe+JFY48lsOD9xtvysrNvTc=
 github.com/WICG/webpackage v0.0.0-20191016013715-95aeed7a5d9e/go.mod h1:RmCSqjSsrBtTrYiO+OKMBfMgztnTnFXVSapi/mNB7IA=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
+github.com/hashicorp/errwrap v1.0.0 h1:hLrqtEDnRye3+sgx6z4qVLNuviH3MR5aQ0ykNJa/UYA=
+github.com/hashicorp/errwrap v1.0.0/go.mod h1:YH+1FKiLXxHSkmPseP+kNlulaMuP3n2brvKWEqk/Jc4=
+github.com/hashicorp/go-multierror v1.0.0 h1:iVjPR7a6H0tWELX5NxNe7bYopibicUzc7uPribsnS6o=
+github.com/hashicorp/go-multierror v1.0.0/go.mod h1:dHtQlpGsu+cZNNAkkCN/P3hoUDHhCYQXV3UM06sGGrk=
 github.com/influxdata/influxdb v1.6.3/go.mod h1:qZna6X/4elxqT3yI9iZYdZrWWdeFOOprn86kgg4+IzY=
 github.com/konsorten/go-windows-terminal-sequences v1.0.1/go.mod h1:T0+1ngSBFLxvqU3pZ+m/2kptfBszLMUkC4ZK/EgS/cQ=
 github.com/mrichman/hargo v0.1.2-0.20190117125451-162adce4527e/go.mod h1:ycD51zRGXcO6ak4DnFPjHv4xzbgRU5tYyWDzbMzFYKw=
