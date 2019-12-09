@@ -24,6 +24,7 @@ import (
 
 	"github.com/google/webpackager"
 	"github.com/google/webpackager/fetch/fetchtest"
+	multierror "github.com/hashicorp/go-multierror"
 )
 
 func stubErrorHandler(status int) http.Handler {
@@ -51,6 +52,46 @@ func stubHandler(status int, text, ctype string) http.Handler {
 			w.Write([]byte(text))
 		},
 	)
+}
+
+func unbundleError(t *testing.T, err error) ([]*webpackager.Error, bool) {
+	t.Helper()
+
+	me, ok := err.(*multierror.Error)
+	if err == nil || !ok {
+		t.Errorf("err = %#v, want *multierror.Error", err)
+		return nil, false
+	}
+
+	got := make([]*webpackager.Error, len(me.Errors))
+	success := true
+	for i, err := range me.Errors {
+		we, ok := err.(*webpackager.Error)
+		if !ok {
+			t.Errorf("me.Errors[%d] = %#v, want *webpackager.Error", i, err)
+			success = false
+			continue
+		}
+		got[i] = we
+	}
+
+	return got, success
+}
+
+func verifyErrorURLs(t *testing.T, err error, want []string) {
+	t.Helper()
+
+	wes, ok := unbundleError(t, err)
+	if !ok {
+		return
+	}
+	got := make([]string, len(wes))
+	for i, we := range wes {
+		got[i] = we.URL.String()
+	}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("(Error URLs) = %q, want %q", got, want)
+	}
 }
 
 func verifyExchange(t *testing.T, pkg *webpackager.Packager, url string, date time.Time, link string) {
