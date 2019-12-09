@@ -18,18 +18,20 @@ import (
 	"fmt"
 	"net/url"
 )
-// Error represents an error encountered in Packager.Run.
+// Error represents an error from Packager.Run.
 type Error struct {
-	URL *url.URL
+	// Err represents the actual error.
 	Err error
+	// URL represents the URL that caused this Error.
+	URL *url.URL
 }
 
-// WrapError wraps err into an Error.
+// WrapError wraps err into an Error. url is the URL which err was raised for.
 func WrapError(err error, url *url.URL) error {
 	if err == nil {
 		return nil
 	}
-	return &Error{url, err}
+	return &Error{err, url}
 }
 
 // Error implements the error interface.
