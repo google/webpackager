@@ -44,28 +44,29 @@ func run() error {
 	}
 
 	pkg := webpackager.NewPackager(*cfg)
+	var errs multierror.MultiError
 
 	for _, u := range urls {
-		pkg.Run(u, vp)
+		if err := pkg.Run(u, vp); err != nil {
+			errs.Add(err)
+		}
 	}
-
-	return pkg.Err()
+	return errs.Err()
 }
 
 func printError(err error) {
-	fmt.Fprintf(os.Stderr, "%s: %v\n", os.Args[0], err)
+	if me, ok := err.(*multierror.MultiError); ok {
+		for _, err := range me.Errors {
+			printError(err)
+		}
+	} else {
+		fmt.Fprintf(os.Stderr, "%s: %v\n", os.Args[0], err)
+	}
 }
 
 func main() {
 	if err := run(); err != nil {
-		if errs, ok := err.(*multierror.MultiError); ok {
-			for _, err := range errs.Errors {
-				printError(err)
-			}
-		} else {
-			printError(err)
-		}
-
+		printError(err)
 		os.Exit(1)
 	}
 }

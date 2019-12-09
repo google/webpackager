@@ -30,10 +30,9 @@ The code below illustrates the usage of this package:
 		}),
 	})
 	for _, url := range urls {
-		packager.Run(url)
-	}
-	if err := packager.Err(); err != nil {
-		log.Fatal(err)
+		if err := packager.Run(url); err != nil {
+			log.Print(err)
+		}
 	}
 
 Config allows you to change some behaviors of the Packager. packager.Run(url)

@@ -27,6 +27,7 @@ import (
 	"github.com/WICG/webpackage/go/signedexchange/version"
 	"github.com/google/webpackager"
 	"github.com/google/webpackager/exchange"
+	"github.com/google/webpackager/fetch"
 	"github.com/google/webpackager/internal/certutil"
 	"github.com/google/webpackager/internal/customflag"
 	"github.com/google/webpackager/internal/multierror"
@@ -37,7 +38,7 @@ import (
 )
 
 var (
-	// RequestHeader
+	// RequestTweaker
 	flagRequestHeader = customflag.MultiString("request_header", `Request headers, e.g. "Accept-Language: en-US, en;q=0.5". (repeatable)`)
 
 	// ExchangeFactory
@@ -65,7 +66,7 @@ const (
 func getConfigFromFlags() (*webpackager.Config, error) {
 	var errs multierror.MultiError
 	cfg := &webpackager.Config{
-		RequestHeader:   getRequestHeaderFromFlags(&errs),
+		RequestTweaker:  getRequestTweakerFromFlags(&errs),
 		PhysicalURLRule: getPhysicalURLRuleFromFlags(&errs),
 		ValidityURLRule: getValidityURLRuleFromFlags(&errs),
 		ExchangeFactory: getExchangeFactoryFromFlags(&errs),
@@ -108,7 +109,7 @@ func parseCertURL(s string) (*url.URL, error) {
 	return u, nil
 }
 
-func getRequestHeaderFromFlags(errs *multierror.MultiError) http.Header {
+func getRequestTweakerFromFlags(errs *multierror.MultiError) fetch.RequestTweaker {
 	header := http.Header{}
 
 	for _, s := range *flagRequestHeader {
@@ -122,7 +123,13 @@ func getRequestHeaderFromFlags(errs *multierror.MultiError) http.Header {
 		}
 	}
 
-	return header
+	if len(header) == 0 {
+		return fetch.DefaultRequestTweaker
+	}
+	return fetch.RequestTweakerSequence{
+		fetch.DefaultRequestTweaker,
+		fetch.SetCustomHeaders(header),
+	}
 }
 
 func getPhysicalURLRuleFromFlags(errs *multierror.MultiError) urlrewrite.Rule {
