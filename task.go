@@ -43,12 +43,12 @@ var (
 type packagerTaskRunner struct {
 	*Packager
 
-	period *exchange.ValidPeriod
+	period exchange.ValidPeriod
 	errs   *multierror.Error
 	active map[string]bool // Keyed by URLs.
 }
 
-func newTaskRunner(p *Packager, vp *exchange.ValidPeriod) *packagerTaskRunner {
+func newTaskRunner(p *Packager, vp exchange.ValidPeriod) *packagerTaskRunner {
 	return &packagerTaskRunner{
 		p,
 		vp,
