@@ -75,7 +75,7 @@ func (runner *packagerTaskRunner) run(parent *packagerTask, req *http.Request, r
 	}
 
 	if err != nil {
-		err = fmt.Errorf("error with processing %s: %v", url, err)
+		err = WrapError(err, r.RequestURL)
 		runner.errs = multierror.Append(runner.errs, err)
 		log.Print(err)
 	}

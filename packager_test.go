@@ -213,10 +213,11 @@ func TestNoExchanges(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			url := urlutil.MustParse(test.url)
-
 			pkg := webpackager.NewPackager(makeConfig(server))
-			pkg.Run(url, exchange.NewValidPeriod(date, expires))
+			url := urlutil.MustParse(test.url)
+			err := pkg.Run(url, exchange.NewValidPeriod(date, expires))
+
+			verifyErrorURLs(t, err, []string{test.url})
 
 			req, err := http.NewRequest(http.MethodGet, test.url, nil)
 			if err != nil {
