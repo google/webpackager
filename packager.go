@@ -34,10 +34,6 @@ func NewPackager(config Config) *Packager {
 	return &Packager{config}
 }
 
-// BUG(yuizumi): The error from Packager is currently not structured.
-// In particular, the caller cannot tell which resource(s) the Packager had
-// a problem with.
-
 // Run runs the process to obtain the signed exchange for url: fetches the
 // content from the server, processes it, and produces the signed exchange
 // from it. Run also takes care of subresources (external resources
@@ -47,8 +43,8 @@ func NewPackager(config Config) *Packager {
 // The process stops when it encounters any error with processing the main
 // resource (specified by url), but keeps running and produces the signed
 // exchange for the main resource if it just fails with the subresources.
-// In either case, Run returns a non-nil error. All errors encountered with
-// subresources are coupled into a single error value.
+// In either case, Run returns a multierror.Error (hashicorp/go-multierror),
+// which consists of webpackager.Errors.
 //
 // Run does not run the process when ResourceCache already has an entry for
 // url.
