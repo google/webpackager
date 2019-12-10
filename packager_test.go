@@ -239,13 +239,13 @@ func TestSubresourceErrors(t *testing.T) {
 	handlers.Handle(
 		"example.org/hello.html",
 		stubHTMLHandler(`<!doctype html>`+
-			`<link href="foo.css" rel="stylesheet">`+
-			`<link href="bar.css" rel="stylesheet">`+
-			`<link href="baz.css" rel="stylesheet">`+
+			`<link href="valid.css" rel="stylesheet">`+
+			`<link href="nonexistent1.css" rel="stylesheet">`+
+			`<link href="nonexistent2.css" rel="stylesheet">`+
 			`<p>Hello, world!</p>`),
 	)
 	handlers.Handle(
-		"example.org/foo.css",
+		"example.org/valid.css",
 		stubTextHandler(`body { font-family: sans-serif; }`, "text/css"),
 	)
 	server := httptest.NewTLSServer(handlers)
@@ -257,18 +257,18 @@ func TestSubresourceErrors(t *testing.T) {
 
 	// err should indicate all invalid subresources.
 	verifyErrorURLs(t, err, []string{
-		"https://example.org/bar.css",
-		"https://example.org/baz.css",
+		"https://example.org/nonexistent1.css",
+		"https://example.org/nonexistent2.css",
 	})
 
 	// Exchanges are still produced for valid resources. The exchange for
 	// the main resource contains preload directives for all subresources
 	// and allowed-alt-sxg for valid subresources.
 	verifyExchange(t, pkg, "https://example.org/hello.html", date, fmt.Sprint(
-		`<https://example.org/foo.css>;rel="allowed-alt-sxg";`+
+		`<https://example.org/valid.css>;rel="allowed-alt-sxg";`+
 			`header-integrity="sha256-+Xd20Pyxhd3oSvNo2ucj9gdj7ZkHavIaDGkucYF76J8=",`,
-		`<https://example.org/foo.css>;rel="preload";as="style",`,
-		`<https://example.org/bar.css>;rel="preload";as="style",`,
-		`<https://example.org/baz.css>;rel="preload";as="style"`))
-	verifyExchange(t, pkg, "https://example.org/foo.css", date, "")
+		`<https://example.org/valid.css>;rel="preload";as="style",`,
+		`<https://example.org/nonexistent1.css>;rel="preload";as="style",`,
+		`<https://example.org/nonexistent2.css>;rel="preload";as="style"`))
+	verifyExchange(t, pkg, "https://example.org/valid.css", date, "")
 }
