@@ -1,6 +1,7 @@
 # Web Packager
 
 [![Build Status](https://travis-ci.org/google/webpackager.svg?branch=master)](https://travis-ci.org/google/webpackager)
+[![GoDoc](https://godoc.org/github.com/google/webpackager?status.svg)](https://godoc.org/github.com/google/webpackager)
 
 Web Packager is a command-line tool to "package" websites in accordance
 with the specifications proposed at [WICG/webpackage][]. It may look like
