@@ -21,73 +21,91 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/google/webpackager/exchange"
 	"github.com/google/webpackager/internal/httpheader"
 	"github.com/google/webpackager/internal/urlutil"
 )
 
 // ValidityURLRule decides the validity URL of a resource.
 type ValidityURLRule interface {
-	// Apply returns the validity URL of a resource. physurl and resp are
-	// the physical URL and the HTTP response of the resource respectively.
-	// The physical URL is typically equal to the request URL, but different
-	// in some cases; see package urlrewrite for more details.
+	// Apply returns the validity URL of a resource. physurl is the physical
+	// URL of the resource; resp is the HTTP response; vp is the period the
+	// signed exchange will be valid for. The physical URL is typically equal
+	// to the request URL but different in some cases; see package urlrewrite
+	// for more details.
 	//
 	// Note ValidityURLRule implementations can retrieve the request URL via
 	// resp.Request.URL.
-	Apply(physurl *url.URL, resp *http.Response) (*url.URL, error)
+	Apply(physurl *url.URL, resp *http.Response, vp exchange.ValidPeriod) (*url.URL, error)
 }
 
-// AppendExtDotUnixTime generates the validity URL by appending the provided
-// extension ext and the last modified time to the physical URL. For example,
+// DefaultValidityURLRule is the default rule used by webpackager.Packager.
+var DefaultValidityURLRule ValidityURLRule = AppendExtDotLastModified(".validity")
+
+// AppendExtDotLastModified generates the validity URL by appending ext
+// and the resource's last modified time. For example:
 //
 //     https://example.com/index.html
 //
-// may yield the following validity URL:
+// would receive a validity URL that looks like:
 //
 //     https://example.com/index.html.validity.1561984496
 //
-// ext usually starts with a dot ("."); AppendExtDotUnixTime does not insert
-// the one automatically. ext is therefore ".validity" rather than "validity"
+// ext usually starts with a dot ("."). AppendExtDotExchangeDate does not
+// insert it automatically. ext is thus ".validity" rather than "validity"
 // in the example above.
 //
-// The last modified time is represented by a UNIX timestamp, and taken from
-// the Last-Modified header of the response. When Last-Modified is missing or
-// has an unparsable value, AppendExtDotUnixTime uses the now argument instead.
+// The last modified time is taken from the Last-Modified header field in
+// the HTTP response and represented in UNIX time. If the Last-Modified
+// is missing or unparsable, AppendExtDotLastModified uses the date value
+// of the signed exchange signature (vp.Date).
 //
-// AppendExtDotUnixTime does not expect the physical URL to contain Query or
-// Fragment. They will be stripped off from the validity URL.
-//
-// Apply returns an error when physurl looks like a directory, e.g. the path
-// ends with a slash.
-func AppendExtDotUnixTime(ext string, now time.Time) ValidityURLRule {
-	return &appendExtDotUnixTime{ext, now}
+// The returned ValidityURLRule does not accept physurl that looks like
+// a directory (e.g. has Path ending with a slash): Apply returns error
+// for such physurl. Note it does not occur if urlrewrite.IndexRule is
+// used. Also the rule does not expect physurl to have Query or Fragment:
+// Apply simply does not include in the validity URL.
+func AppendExtDotLastModified(ext string) ValidityURLRule {
+	return &appendExtDotLastModified{ext}
 }
 
-type appendExtDotUnixTime struct {
+type appendExtDotLastModified struct {
 	ext string
-	now time.Time
 }
 
-func (rule *appendExtDotUnixTime) Apply(physurl *url.URL, resp *http.Response) (*url.URL, error) {
+func (rule *appendExtDotLastModified) Apply(physurl *url.URL, resp *http.Response, vp exchange.ValidPeriod) (*url.URL, error) {
+	date := resp.Header.Get("Last-Modified")
+	if date == "" {
+		return toValidityURL(physurl, rule.ext, vp.Date())
+	}
+	parsed, err := httpheader.ParseDate(date)
+	if err != nil {
+		log.Printf("warning: failed to parse the header %q: %v", date, err)
+		return toValidityURL(physurl, rule.ext, vp.Date())
+	}
+	return toValidityURL(physurl, rule.ext, parsed)
+}
+
+// AppendExtDotExchangeDate is like AppendExtDotLastModified but always
+// uses vp.Date instead of the last modified time.
+func AppendExtDotExchangeDate(ext string) ValidityURLRule {
+	return &appendExtDotExchangeDate{ext}
+}
+
+type appendExtDotExchangeDate struct {
+	ext string
+}
+
+func (rule *appendExtDotExchangeDate) Apply(physurl *url.URL, resp *http.Response, vp exchange.ValidPeriod) (*url.URL, error) {
+	return toValidityURL(physurl, rule.ext, vp.Date())
+}
+
+func toValidityURL(physurl *url.URL, ext string, date time.Time) (*url.URL, error) {
 	// We do not care whether physurl is normalized or not: we can append
 	// the extension as long as it has a filename.
 	if urlutil.IsDir(physurl) {
 		return nil, fmt.Errorf("%q looks like a directory", physurl)
 	}
-	date := rule.parseDate(resp)
-	newPath := fmt.Sprintf("%s%s.%d", physurl.Path, rule.ext, date.Unix())
+	newPath := fmt.Sprintf("%s%s.%d", physurl.Path, ext, date.Unix())
 	return physurl.ResolveReference(&url.URL{Path: newPath}), nil
-}
-
-func (rule *appendExtDotUnixTime) parseDate(resp *http.Response) time.Time {
-	date := resp.Header.Get("Last-Modified")
-	if date == "" {
-		return rule.now
-	}
-	parsed, err := httpheader.ParseDate(date)
-	if err != nil {
-		log.Printf("warning: failed to parse the header %q: %v", date, err)
-		return rule.now
-	}
-	return parsed
 }
