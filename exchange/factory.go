@@ -38,7 +38,7 @@ type Factory struct {
 }
 
 // NewExchange generates a signed exchange from resp, vp, and validityURL.
-func (fty *Factory) NewExchange(resp *Response, vp *ValidPeriod, validityURL *url.URL) (*signedexchange.Exchange, error) {
+func (fty *Factory) NewExchange(resp *Response, vp ValidPeriod, validityURL *url.URL) (*signedexchange.Exchange, error) {
 	e := signedexchange.NewExchange(
 		fty.Version,
 		resp.Request.URL.String(),

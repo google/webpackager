@@ -24,34 +24,34 @@ type ValidPeriod struct {
 
 // NewValidPeriod creates and initializes a new ValidPeriod from the date and
 // expires parameters.
-func NewValidPeriod(date, expires time.Time) *ValidPeriod {
-	return &ValidPeriod{date, expires}
+func NewValidPeriod(date, expires time.Time) ValidPeriod {
+	return ValidPeriod{date, expires}
 }
 
 // NewValidPeriodWithDuration creates and initializes a new ValidPeriod from
 // the date parameter and the lifetime.
-func NewValidPeriodWithLifetime(date time.Time, lifetime time.Duration) *ValidPeriod {
-	return &ValidPeriod{date, date.Add(lifetime)}
+func NewValidPeriodWithLifetime(date time.Time, lifetime time.Duration) ValidPeriod {
+	return ValidPeriod{date, date.Add(lifetime)}
 }
 
 // Date returns the date parameter, when the signed exchange is produced.
-func (vp *ValidPeriod) Date() time.Time {
+func (vp ValidPeriod) Date() time.Time {
 	return vp.date
 }
 
 // Expires returns the expires parameter, when the signed exchange gets expired.
-func (vp *ValidPeriod) Expires() time.Time {
+func (vp ValidPeriod) Expires() time.Time {
 	return vp.expires
 }
 
 // Lifetime returns the duration between the date and expires parameters.
-func (vp *ValidPeriod) Lifetime() time.Duration {
+func (vp ValidPeriod) Lifetime() time.Duration {
 	return vp.expires.Sub(vp.date)
 }
 
 // Contains reports whether t is neither before the date parameter nor after
 // the expires parameter. In other words, Contains returns true if t is between
 // the date and expires parameters, both inclusive.
-func (vp *ValidPeriod) Contains(t time.Time) bool {
+func (vp ValidPeriod) Contains(t time.Time) bool {
 	return !t.Before(vp.date) && !t.After(vp.expires)
 }
