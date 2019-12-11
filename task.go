@@ -169,7 +169,7 @@ func (task *packagerTask) getPhysicalURL(r *resource.Resource, resp *http.Respon
 }
 
 func (task *packagerTask) getValidityURL(r *resource.Resource, resp *http.Response) (*url.URL, error) {
-	return task.ValidityURLRule.Apply(r.PhysicalURL, resp)
+	return task.ValidityURLRule.Apply(r.PhysicalURL, resp, task.period)
 }
 
 func (task *packagerTask) createExchange(rawResp *http.Response) (*signedexchange.Exchange, error) {

@@ -15,8 +15,6 @@
 package webpackager
 
 import (
-	"time"
-
 	"github.com/google/webpackager/exchange"
 	"github.com/google/webpackager/fetch"
 	"github.com/google/webpackager/processor"
@@ -25,8 +23,6 @@ import (
 	"github.com/google/webpackager/urlrewrite"
 	"github.com/google/webpackager/validity"
 )
-
-const validityExt = ".validity"
 
 // Config defines injection points to Packager.
 type Config struct {
@@ -106,7 +102,7 @@ func (cfg *Config) populateDefaults() {
 		cfg.PhysicalURLRule = urlrewrite.DefaultRules
 	}
 	if cfg.ValidityURLRule == nil {
-		cfg.ValidityURLRule = validity.AppendExtDotUnixTime(validityExt, time.Now())
+		cfg.ValidityURLRule = validity.DefaultValidityURLRule
 	}
 	if cfg.Processor == nil {
 		cfg.Processor = defaultproc.DefaultProcessor

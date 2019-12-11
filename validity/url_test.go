@@ -20,6 +20,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/webpackager/exchange"
 	"github.com/google/webpackager/validity"
 )
 
@@ -29,36 +30,67 @@ func TestAppendExtDotUnixTime(t *testing.T) {
 		url    string
 		header http.Header
 		rule   validity.ValidityURLRule
+		vp     exchange.ValidPeriod
 		want   string
 	}{
 		{
-			name: "HeaderCorrect",
+			name: "LastModified_Correct",
 			url:  "https://example.com/index.html",
 			header: http.Header{
 				"Last-Modified": []string{"Mon, 01 Jul 2019 12:34:56 GMT"},
 				"Content-Type":  []string{"text/html; charset=utf-8"},
 			},
-			rule: validity.AppendExtDotUnixTime(".validity", time.Unix(1234567890, 0)),
+			rule: validity.AppendExtDotLastModified(".validity"),
+			vp: exchange.NewValidPeriodWithLifetime(
+				time.Unix(1561939200, 0), 24*time.Hour),
 			want: "https://example.com/index.html.validity.1561984496",
 		},
 		{
-			name: "HeaderMissing",
+			name: "LastModified_Missing",
 			url:  "https://example.com/index.html",
 			header: http.Header{
 				"Content-Type": []string{"text/html; charset=utf-8"},
 			},
-			rule: validity.AppendExtDotUnixTime(".validity", time.Unix(1234567890, 0)),
-			want: "https://example.com/index.html.validity.1234567890",
+			rule: validity.AppendExtDotLastModified(".validity"),
+			vp: exchange.NewValidPeriodWithLifetime(
+				time.Unix(1561939200, 0), 24*time.Hour),
+			want: "https://example.com/index.html.validity.1561939200",
 		},
 		{
-			name: "HeaderInvalid",
+			name: "LastModified_Invalid",
 			url:  "https://example.com/index.html",
 			header: http.Header{
 				"Last-Modified": []string{"COMPLETELY_BROKEN_DATE_STRING"},
 				"Content-Type":  []string{"text/html; charset=utf-8"},
 			},
-			rule: validity.AppendExtDotUnixTime(".validity", time.Unix(1234567890, 0)),
-			want: "https://example.com/index.html.validity.1234567890",
+			rule: validity.AppendExtDotLastModified(".validity"),
+			vp: exchange.NewValidPeriodWithLifetime(
+				time.Unix(1561939200, 0), 24*time.Hour),
+			want: "https://example.com/index.html.validity.1561939200",
+		},
+		{
+			name: "LastModified_QueryGone",
+			url:  "https://example.com/index.php?id=42",
+			header: http.Header{
+				"Last-Modified": []string{"Mon, 01 Jul 2019 12:34:56 GMT"},
+				"Content-Type":  []string{"text/html; charset=utf-8"},
+			},
+			rule: validity.AppendExtDotLastModified(".validity"),
+			vp: exchange.NewValidPeriodWithLifetime(
+				time.Unix(1561939200, 0), 24*time.Hour),
+			want: "https://example.com/index.php.validity.1561984496",
+		},
+		{
+			name: "ExchangeDate",
+			url:  "https://example.com/index.html",
+			header: http.Header{
+				"Last-Modified": []string{"Mon, 01 Jul 2019 12:34:56 GMT"},
+				"Content-Type":  []string{"text/html; charset=utf-8"},
+			},
+			rule: validity.AppendExtDotExchangeDate(".validity"),
+			vp: exchange.NewValidPeriodWithLifetime(
+				time.Unix(1561939200, 0), 24*time.Hour),
+			want: "https://example.com/index.html.validity.1561939200",
 		},
 	}
 
@@ -67,7 +99,7 @@ func TestAppendExtDotUnixTime(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		got, err := test.rule.Apply(arg, &http.Response{Header: test.header})
+		got, err := test.rule.Apply(arg, &http.Response{Header: test.header}, test.vp)
 		if err != nil {
 			t.Fatalf("got error(%q), want success", err)
 		}

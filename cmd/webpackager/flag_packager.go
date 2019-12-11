@@ -152,12 +152,7 @@ func getPhysicalURLRuleFromFlags() (urlrewrite.Rule, error) {
 }
 
 func getValidityURLRuleFromFlags() (validity.ValidityURLRule, error) {
-	// err will be logged in getExchangeFactoryFromFlags().
-	date, err := parseDate(*flagDate)
-	if err != nil {
-		date = time.Now()
-	}
-	return validity.AppendExtDotUnixTime(*flagValidityExt, date), nil
+	return validity.AppendExtDotLastModified(*flagValidityExt), nil
 }
 
 func getExchangeFactoryFromFlags() (*exchange.Factory, error) {
