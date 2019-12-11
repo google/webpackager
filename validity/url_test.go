@@ -69,6 +69,18 @@ func TestAppendExtDotUnixTime(t *testing.T) {
 			want: "https://example.com/index.html.validity.1561939200",
 		},
 		{
+			name: "LastModified_QueryGone",
+			url:  "https://example.com/index.php?id=42",
+			header: http.Header{
+				"Last-Modified": []string{"Mon, 01 Jul 2019 12:34:56 GMT"},
+				"Content-Type":  []string{"text/html; charset=utf-8"},
+			},
+			rule: validity.AppendExtDotLastModified(".validity"),
+			vp: exchange.NewValidPeriodWithLifetime(
+				time.Unix(1561939200, 0), 24*time.Hour),
+			want: "https://example.com/index.php.validity.1561984496",
+		},
+		{
 			name: "ExchangeDate",
 			url:  "https://example.com/index.html",
 			header: http.Header{

@@ -60,11 +60,13 @@ var DefaultValidityURLRule ValidityURLRule = AppendExtDotLastModified(".validity
 // is missing or unparsable, AppendExtDotLastModified uses the date value
 // of the signed exchange signature (vp.Date).
 //
-// The returned ValidityURLRule does not accept physurl that looks like
-// a directory (e.g. has Path ending with a slash): Apply returns error
-// for such physurl. Note it does not occur if urlrewrite.IndexRule is
-// used. Also the rule does not expect physurl to have Query or Fragment:
-// Apply simply does not include in the validity URL.
+// The AppendExtDotLastModified rule does not support physurl that looks
+// like a directory (e.g. has Path ending with a slash). Apply returns an
+// error for such physurl. Note you can use urlrewrite.IndexRule to ensure
+// physurl to always have a filename.
+//
+// The AppendExtDotLastModified rule ignores Query and Fragment in physurl.
+// The validity URLs will always have empty Query and Fragment.
 func AppendExtDotLastModified(ext string) ValidityURLRule {
 	return &appendExtDotLastModified{ext}
 }
@@ -107,5 +109,6 @@ func toValidityURL(physurl *url.URL, ext string, date time.Time) (*url.URL, erro
 		return nil, fmt.Errorf("%q looks like a directory", physurl)
 	}
 	newPath := fmt.Sprintf("%s%s.%d", physurl.Path, ext, date.Unix())
+	// This ResolveReference drops Query and Fragment from the resulting URL.
 	return physurl.ResolveReference(&url.URL{Path: newPath}), nil
 }
