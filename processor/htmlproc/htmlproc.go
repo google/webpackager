@@ -29,7 +29,7 @@ import (
 type Config struct {
 	// TaskSet specifies the sequence of HTMLTasks to run.
 	//
-	// nil implies htmltask.DefaultTaskSet.
+	// nil or empty implies htmltask.DefaultTaskSet.
 	TaskSet []htmltask.HTMLTask
 
 	// ModifyHTML indicates whether the processor can modify HTML documents.
