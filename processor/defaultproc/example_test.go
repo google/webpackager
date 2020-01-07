@@ -17,19 +17,24 @@ package defaultproc_test
 import (
 	"github.com/google/webpackager/processor"
 	"github.com/google/webpackager/processor/defaultproc"
+	"github.com/google/webpackager/processor/htmlproc"
+	"github.com/google/webpackager/processor/htmlproc/htmltask"
 )
 
 // This example constructs a new Processor that runs a custom HTMLTask and
 // behaves otherwise the same as DefaultProcessor.
 func Example_customize() processor.Processor {
-	// Create a copy of DefaultConfig to mutate.
-	config := defaultproc.DefaultConfig
+	// Instantiate your custom HTMLTask.
+	yourTask := NewCustomHTMLTask()
 
-	// Have the custom HTMLTask run in the HTMLProcessor.
-	task := NewCustomHTMLTask()
-	config.HTML.TaskSet = append(config.HTML.TaskSet, task)
+	// Have your HTMLTask run in the HTMLProcessor.
+	config := defaultproc.Config{
+		HTML: htmlproc.Config{
+			TaskSet: append(htmltask.DefaultTaskSet, yourTask),
+		},
+	}
 
-	// Create the composite with the modified config.
+	// Create the composite with the config above.
 	return processor.SequentialProcessor{
 		defaultproc.Preprocessors,
 		defaultproc.NewMainProcessor(config),

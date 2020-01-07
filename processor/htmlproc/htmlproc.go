@@ -28,6 +28,8 @@ import (
 // Config holds parameters to NewHTMLProcessor.
 type Config struct {
 	// TaskSet specifies the sequence of HTMLTasks to run.
+	//
+	// nil implies htmltask.DefaultTaskSet.
 	TaskSet []htmltask.HTMLTask
 
 	// ModifyHTML indicates whether the processor can modify HTML documents.
@@ -45,6 +47,9 @@ type Config struct {
 // htmldoc.HTMLResponse then runs the specified htmltask.HTMLTasks one by one.
 // The Processor fails immediately when some HTMLTask encounters an error.
 func NewHTMLProcessor(config Config) processor.Processor {
+	if len(config.TaskSet) == 0 {
+		config.TaskSet = htmltask.DefaultTaskSet
+	}
 	return &htmlProcessor{config}
 }
 
