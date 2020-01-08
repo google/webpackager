@@ -26,6 +26,9 @@ var DefaultProcessor = NewComprehensiveProcessor(Config{})
 
 // Config customizes NewComprehensiveProcessor.
 type Config struct {
+	// Preverify is passed to preverify.CheckPrerequisites.
+	Preverify preverify.Config
+
 	// HTML is passed to htmlproc.NewHTMLProcessor.
 	HTML htmlproc.Config
 
@@ -65,7 +68,7 @@ var (
 func NewComprehensiveProcessor(config Config) processor.Processor {
 	// TODO(yuizumi): Maybe flatten these processors.
 	return processor.SequentialProcessor{
-		preverify.CheckPrerequisites,
+		preverify.CheckPrerequisites(config.Preverify),
 		EssentialPreprocessors,
 		config.CustomPreprocessors,
 		newMainProcessor(config),

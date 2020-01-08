@@ -22,13 +22,25 @@ import (
 	"github.com/google/webpackager/processor"
 )
 
-// RequireStatusOK ensures the response to have the status code 200 (OK).
-var RequireStatusOK processor.Processor = &requireStatusOK{}
+// HTTPStatusOK ensures the response to have the status code 200 (OK).
+var HTTPStatusOK = HTTPStatusCode(http.StatusOK)
 
-type requireStatusOK struct{}
+// HTTPStatusCode ensures the response to have one of the provided HTTP
+// status codes.
+func HTTPStatusCode(expectedCodes ...int) processor.Processor {
+	expectedCodeSet := make(map[int]bool, len(expectedCodes))
+	for _, code := range expectedCodes {
+		expectedCodeSet[code] = true
+	}
+	return &httpStatusCode{expectedCodeSet}
+}
 
-func (*requireStatusOK) Process(resp *exchange.Response) error {
-	if resp.StatusCode != http.StatusOK {
+type httpStatusCode struct {
+	expected map[int]bool
+}
+
+func (h *httpStatusCode) Process(resp *exchange.Response) error {
+	if !h.expected[resp.StatusCode] {
 		return fmt.Errorf("responded with status %d", resp.StatusCode)
 	}
 	return nil
