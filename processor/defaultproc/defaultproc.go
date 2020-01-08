@@ -21,14 +21,13 @@ import (
 	"github.com/google/webpackager/processor"
 	"github.com/google/webpackager/processor/commonproc"
 	"github.com/google/webpackager/processor/htmlproc"
-	"github.com/google/webpackager/processor/htmlproc/htmltask"
 	"github.com/google/webpackager/processor/preverify"
 )
 
 // DefaultProcessor is the processor used by webpackager.Packager by default.
 var DefaultProcessor = processor.SequentialProcessor{
 	Preprocessors,
-	NewMainProcessor(DefaultConfig),
+	NewMainProcessor(Config{}),
 	Postprocessors,
 }
 
@@ -39,12 +38,6 @@ type Config struct {
 
 // Here are the parameters to DefaultProcessor.
 var (
-	// DefaultConfig is the Config used in DefaultProcessor.
-	DefaultConfig = Config{
-		HTML: htmlproc.Config{
-			TaskSet: htmltask.DefaultTaskSet,
-		},
-	}
 	// Preprocessors specifies the processors to run before the main processor.
 	Preprocessors = processor.SequentialProcessor{
 		preverify.CheckPrerequisites,
