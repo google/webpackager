@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package defaultproc_test
+package complexproc_test
 
 import (
 	"github.com/google/webpackager/processor"
-	"github.com/google/webpackager/processor/defaultproc"
+	"github.com/google/webpackager/processor/complexproc"
 	"github.com/google/webpackager/processor/htmlproc"
 	"github.com/google/webpackager/processor/htmlproc/htmltask"
 )
@@ -28,16 +28,12 @@ func Example_customize() processor.Processor {
 	yourTask := NewCustomHTMLTask()
 
 	// Have your HTMLTask run in the HTMLProcessor.
-	config := defaultproc.Config{
+	config := complexproc.Config{
 		HTML: htmlproc.Config{
 			TaskSet: append(htmltask.DefaultTaskSet, yourTask),
 		},
 	}
 
-	// Create the composite with the config above.
-	return processor.SequentialProcessor{
-		defaultproc.Preprocessors,
-		defaultproc.NewMainProcessor(config),
-		defaultproc.Postprocessors,
-	}
+	// Create the ComprehensiveProcessor.
+	return complexproc.NewComprehensiveProcessor(config)
 }

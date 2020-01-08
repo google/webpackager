@@ -18,7 +18,7 @@ import (
 	"github.com/google/webpackager/exchange"
 	"github.com/google/webpackager/fetch"
 	"github.com/google/webpackager/processor"
-	"github.com/google/webpackager/processor/defaultproc"
+	"github.com/google/webpackager/processor/complexproc"
 	"github.com/google/webpackager/resource/cache"
 	"github.com/google/webpackager/urlrewrite"
 	"github.com/google/webpackager/validity"
@@ -63,7 +63,7 @@ type Config struct {
 	// the response can be distributed as signed exchanges and optionally
 	// adjust the response for optimized page loading.
 	//
-	// nil implies defaultproc.DefaultProcessor, a composite of relatively
+	// nil implies complexproc.DefaultProcessor, a composite of relatively
 	// conservative processors.
 	//
 	// See package processor for details.
@@ -105,7 +105,7 @@ func (cfg *Config) populateDefaults() {
 		cfg.ValidityURLRule = validity.DefaultValidityURLRule
 	}
 	if cfg.Processor == nil {
-		cfg.Processor = defaultproc.DefaultProcessor
+		cfg.Processor = complexproc.DefaultProcessor
 	}
 	if cfg.ResourceCache == nil {
 		cfg.ResourceCache = cache.NewOnMemoryCache()
