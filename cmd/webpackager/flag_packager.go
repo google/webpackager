@@ -30,6 +30,8 @@ import (
 	"github.com/google/webpackager/fetch"
 	"github.com/google/webpackager/internal/certutil"
 	"github.com/google/webpackager/internal/customflag"
+	"github.com/google/webpackager/processor"
+	"github.com/google/webpackager/processor/complexproc"
 	"github.com/google/webpackager/resource/cache"
 	"github.com/google/webpackager/resource/cache/filewrite"
 	"github.com/google/webpackager/urlrewrite"
@@ -47,6 +49,9 @@ var (
 	flagCertCBOR     = flag.String("cert_cbor", "", `Certificate chain CBOR file. Fetched from --cert_url when unspecified.`)
 	flagCertURL      = flag.String("cert_url", "", `Certficiate chain URL. (required)`)
 	flagPrivateKey   = flag.String("private_key", "", `Private key PEM file. (required)`)
+
+	// Processor
+	flagMaxContentLength = flag.String("max_content_length", "4194304", `Maximum Content-Length of responses allowed for signed exchanges.`)
 
 	// PhysicalURLRule
 	flagIndexFile = flag.String("index_file", "index.html", `Filename assumed for slash-ended URLs.`)
@@ -74,6 +79,8 @@ func getConfigFromFlags() (*webpackager.Config, error) {
 	errs = multierror.Append(errs, err)
 	cfg.ValidityURLRule, err = getValidityURLRuleFromFlags()
 	errs = multierror.Append(errs, err)
+	cfg.Processor, err = getProcessorFromFlags()
+	errs = multierror.Append(errs, err)
 	cfg.ExchangeFactory, err = getExchangeFactoryFromFlags()
 	errs = multierror.Append(errs, err)
 	cfg.ResourceCache, err = getResourceCacheFromFlags()
@@ -93,8 +100,8 @@ func parseVersion(s string) (version.Version, error) {
 	return v, nil
 }
 
-func parseMIRecordSize(s string) (int, error) {
-	// TODO(yuizumi): Maybe support binary prefixes (e.g. "4k" == 4096).
+func parseByteSize(s string) (int, error) {
+	// TODO(yuizumi): Maybe support binary suffixes (e.g. "4k" == 4096).
 	v, err := strconv.Atoi(s)
 	if err != nil {
 		return v, err
@@ -155,6 +162,21 @@ func getValidityURLRuleFromFlags() (validity.ValidityURLRule, error) {
 	return validity.AppendExtDotLastModified(*flagValidityExt), nil
 }
 
+func getProcessorFromFlags() (processor.Processor, error) {
+	var cfg complexproc.Config
+	var err error
+	errs := new(multierror.Error)
+
+	cfg.Preverify.MaxContentLength, err = parseByteSize(*flagMaxContentLength)
+	if err != nil {
+		errs = multierror.Append(errs, fmt.Errorf("invalid --max_content_length: %v", err))
+	}
+
+	if err := errs.ErrorOrNil(); err != nil {
+		return nil, err
+	}
+	return complexproc.NewComprehensiveProcessor(cfg), nil
+}
 func getExchangeFactoryFromFlags() (*exchange.Factory, error) {
 	fty := new(exchange.Factory)
 	var err error
@@ -165,7 +187,7 @@ func getExchangeFactoryFromFlags() (*exchange.Factory, error) {
 		errs = multierror.Append(errs, fmt.Errorf("invalid --version: %v", err))
 	}
 
-	fty.MIRecordSize, err = parseMIRecordSize(*flagMIRecordSize)
+	fty.MIRecordSize, err = parseByteSize(*flagMIRecordSize)
 	if err != nil {
 		errs = multierror.Append(errs, fmt.Errorf("invalid --mi_record_size: %v", err))
 	}
