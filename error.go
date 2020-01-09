@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"net/url"
 )
+
 // Error represents an error from Packager.Run.
 type Error struct {
 	// Err represents the actual error.
