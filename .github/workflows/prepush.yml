@@ -1,4 +1,4 @@
-name: Check code formatting
+name: Prepush checks
 on: [push, pull_request]
 jobs:
   check-format:
@@ -20,4 +20,18 @@ jobs:
         if $(go env GOPATH)/bin/goimports -d . | grep . ; then
           exit 1
         fi
+
+  go-vet:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Setup Go 1.11
+      uses: actions/setup-go@v1
+      with:
+        go-version: '1.11'
+
+    - name: Checkout the repository
+      uses: actions/checkout@v2
+
+    - name: Diagnose the code with go vet
+      run: go vet ./...
 
