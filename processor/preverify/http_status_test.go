@@ -16,21 +16,31 @@ package preverify_test
 
 import (
 	"fmt"
+	"net/http"
 	"testing"
 
 	"github.com/google/webpackager/exchange/exchangetest"
+	"github.com/google/webpackager/processor"
 	"github.com/google/webpackager/processor/preverify"
 )
 
-func TestRequireStatusOK_Success(t *testing.T) {
+func TestHTTPStatusCode_Success(t *testing.T) {
+	// These tests include http.StatusNoContent (204) solely for testing
+	// purpose. It does not mean to recommend producing signed exchanges
+	// from a 204 response, in particular.
 	tests := []struct {
 		name string
 		url  string
+		proc processor.Processor
 		resp string
 	}{
 		{
 			name: "OK",
 			url:  "https://example.org/hello.html",
+			proc: preverify.HTTPStatusCode(
+				http.StatusOK,        // 200
+				http.StatusNoContent, // 204
+			),
 			resp: fmt.Sprint(
 				"HTTP/1.1 200 OK\r\n",
 				"Cache-Control: public, max-age=1209600\r\n",
@@ -40,27 +50,57 @@ func TestRequireStatusOK_Success(t *testing.T) {
 				"<!doctype html><p>Hello, world!</p>",
 			),
 		},
+		{
+			name: "NoContent_Included",
+			url:  "https://example.org/hello.html",
+			proc: preverify.HTTPStatusCode(
+				http.StatusOK,        // 200
+				http.StatusNoContent, // 204
+			),
+			resp: fmt.Sprint(
+				"HTTP/1.1 204 No Content\r\n",
+				"Cache-Control: public, max-age=1209600\r\n",
+				"\r\n",
+			),
+		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			resp := exchangetest.MakeResponse(test.url, test.resp)
-			if err := preverify.RequireStatusOK.Process(resp); err != nil {
+			if err := test.proc.Process(resp); err != nil {
 				t.Errorf("got error(%q), want success", err)
 			}
 		})
 	}
 }
 
-func TestRequireStatusOK_Error(t *testing.T) {
+func TestHTTPStatusCode_Error(t *testing.T) {
 	tests := []struct {
 		name string
 		url  string
+		proc processor.Processor
 		resp string
 	}{
 		{
-			name: "NonOKStatus",
+			name: "NoContent_Excluded",
 			url:  "https://example.org/hello.html",
+			proc: preverify.HTTPStatusCode(
+				http.StatusOK,
+			),
+			resp: fmt.Sprint(
+				"HTTP/1.1 204 No Content\r\n",
+				"Cache-Control: public, max-age=1209600\r\n",
+				"\r\n",
+			),
+		},
+		{
+			name: "NotFound",
+			url:  "https://example.org/hello.html",
+			proc: preverify.HTTPStatusCode(
+				http.StatusOK,        // 200
+				http.StatusNoContent, // 204
+			),
 			resp: fmt.Sprint(
 				"HTTP/1.1 404 Not Found\r\n",
 				"Cache-Control: public, max-age=1209600\r\n",
@@ -74,7 +114,7 @@ func TestRequireStatusOK_Error(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			resp := exchangetest.MakeResponse(test.url, test.resp)
-			if err := preverify.RequireStatusOK.Process(resp); err == nil {
+			if err := test.proc.Process(resp); err == nil {
 				t.Error("got success, want error")
 			}
 		})

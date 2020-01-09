@@ -22,7 +22,29 @@ import (
 	"github.com/google/webpackager/processor"
 )
 
-// CheckPrerequisites is a composite of all prerequisite checkers.
-var CheckPrerequisites = processor.SequentialProcessor{
-	RequireStatusOK,
+// Config holds the parameters to CheckPrerequisites.
+type Config struct {
+	// GoodStatusCodes specifies the set of HTTP response codes to consider
+	// to be eligible for signed exchanges.
+	//
+	// nil or empty implies []int{http.StatusOK}, which is considered to be
+	// the current best practice.
+	GoodStatusCodes []int
+}
+
+// CheckPrerequisites returns a Processor to verify the provided response
+// meets all prerequisites as specified in config.
+//
+// CheckPrerequisites is usually used indirectly, through the complexproc
+// package.
+func CheckPrerequisites(config Config) processor.Processor {
+	var p processor.SequentialProcessor
+
+	if len(config.GoodStatusCodes) == 0 {
+		p = append(p, HTTPStatusOK)
+	} else {
+		p = append(p, HTTPStatusCode(config.GoodStatusCodes...))
+	}
+
+	return p
 }
