@@ -50,7 +50,7 @@ var (
 	flagPrivateKey   = flag.String("private_key", "", `Private key PEM file. (required)`)
 
 	// Processor
-	flagSizeLimit = flag.String("size_limit", "4194304", `Maximum size of resources allowed for signed exchanges, or "none" to set no limit.`)
+	flagSizeLimit = flag.String("size_limit", "4194304", fmt.Sprintf(`Maximum size of resources in bytes allowed for signed exchanges, or %q to set no limit.`, noSizeLimitString))
 
 	// PhysicalURLRule
 	flagIndexFile = flag.String("index_file", "index.html", `Filename assumed for slash-ended URLs.`)
