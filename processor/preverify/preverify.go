@@ -30,7 +30,17 @@ type Config struct {
 	// nil or empty implies []int{http.StatusOK}, which is considered to be
 	// the current best practice.
 	GoodStatusCodes []int
+
+	// MaxContentLength
+	//
+	// Zero implies DefaultMaxContentLength, and a negative number implies
+	// "unlimited."
+	MaxContentLength int
 }
+
+const (
+	DefaultMaxContentLength = 4194304 // 4 MiB
+)
 
 // CheckPrerequisites returns a Processor to verify the provided response
 // meets all prerequisites as specified in config.
@@ -44,6 +54,14 @@ func CheckPrerequisites(config Config) processor.Processor {
 		p = append(p, HTTPStatusOK)
 	} else {
 		p = append(p, HTTPStatusCode(config.GoodStatusCodes...))
+	}
+
+	if config.MaxContentLength >= 0 {
+		if config.MaxContentLength == 0 {
+			p = append(p, MaxContentLength(DefaultMaxContentLength))
+		} else {
+			p = append(p, MaxContentLength(config.MaxContentLength))
+		}
 	}
 
 	return p

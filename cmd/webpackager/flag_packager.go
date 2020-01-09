@@ -22,7 +22,6 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/WICG/webpackage/go/signedexchange/version"
 	"github.com/google/webpackager"
@@ -30,6 +29,8 @@ import (
 	"github.com/google/webpackager/fetch"
 	"github.com/google/webpackager/internal/certutil"
 	"github.com/google/webpackager/internal/customflag"
+	"github.com/google/webpackager/processor"
+	"github.com/google/webpackager/processor/complexproc"
 	"github.com/google/webpackager/resource/cache"
 	"github.com/google/webpackager/resource/cache/filewrite"
 	"github.com/google/webpackager/urlrewrite"
@@ -48,6 +49,9 @@ var (
 	flagCertURL      = flag.String("cert_url", "", `Certficiate chain URL. (required)`)
 	flagPrivateKey   = flag.String("private_key", "", `Private key PEM file. (required)`)
 
+	// Processor
+	flagSizeLimit = flag.String("size_limit", "4194304", fmt.Sprintf(`Maximum size of resources in bytes allowed for signed exchanges, or %q to set no limit.`, noSizeLimitString))
+
 	// PhysicalURLRule
 	flagIndexFile = flag.String("index_file", "index.html", `Filename assumed for slash-ended URLs.`)
 
@@ -59,8 +63,7 @@ var (
 )
 
 const (
-	dateNowString = "now"
-	maxExpiry     = 7 * (24 * time.Hour)
+	noSizeLimitString = "none"
 )
 
 func getConfigFromFlags() (*webpackager.Config, error) {
@@ -73,6 +76,8 @@ func getConfigFromFlags() (*webpackager.Config, error) {
 	cfg.PhysicalURLRule, err = getPhysicalURLRuleFromFlags()
 	errs = multierror.Append(errs, err)
 	cfg.ValidityURLRule, err = getValidityURLRuleFromFlags()
+	errs = multierror.Append(errs, err)
+	cfg.Processor, err = getProcessorFromFlags()
 	errs = multierror.Append(errs, err)
 	cfg.ExchangeFactory, err = getExchangeFactoryFromFlags()
 	errs = multierror.Append(errs, err)
@@ -93,8 +98,8 @@ func parseVersion(s string) (version.Version, error) {
 	return v, nil
 }
 
-func parseMIRecordSize(s string) (int, error) {
-	// TODO(yuizumi): Maybe support binary prefixes (e.g. "4k" == 4096).
+func parseByteSize(s string) (int, error) {
+	// TODO(yuizumi): Maybe support binary suffixes (e.g. "4k" == 4096).
 	v, err := strconv.Atoi(s)
 	if err != nil {
 		return v, err
@@ -103,6 +108,13 @@ func parseMIRecordSize(s string) (int, error) {
 		return v, errors.New("value must be positive")
 	}
 	return v, nil
+}
+
+func parseSizeLimit(s string) (int, error) {
+	if s == noSizeLimitString {
+		return -1, nil
+	}
+	return parseByteSize(s)
 }
 
 func parseCertURL(s string) (*url.URL, error) {
@@ -155,6 +167,21 @@ func getValidityURLRuleFromFlags() (validity.ValidityURLRule, error) {
 	return validity.AppendExtDotLastModified(*flagValidityExt), nil
 }
 
+func getProcessorFromFlags() (processor.Processor, error) {
+	var cfg complexproc.Config
+	var err error
+	errs := new(multierror.Error)
+
+	cfg.Preverify.MaxContentLength, err = parseSizeLimit(*flagSizeLimit)
+	if err != nil {
+		errs = multierror.Append(errs, fmt.Errorf("invalid --size_limit: %v", err))
+	}
+
+	if err := errs.ErrorOrNil(); err != nil {
+		return nil, err
+	}
+	return complexproc.NewComprehensiveProcessor(cfg), nil
+}
 func getExchangeFactoryFromFlags() (*exchange.Factory, error) {
 	fty := new(exchange.Factory)
 	var err error
@@ -165,7 +192,7 @@ func getExchangeFactoryFromFlags() (*exchange.Factory, error) {
 		errs = multierror.Append(errs, fmt.Errorf("invalid --version: %v", err))
 	}
 
-	fty.MIRecordSize, err = parseMIRecordSize(*flagMIRecordSize)
+	fty.MIRecordSize, err = parseByteSize(*flagMIRecordSize)
 	if err != nil {
 		errs = multierror.Append(errs, fmt.Errorf("invalid --mi_record_size: %v", err))
 	}

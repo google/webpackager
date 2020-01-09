@@ -29,6 +29,11 @@ var (
 	flagExpiry = flag.String("expiry", "1h", `Lifetime of signed exchanges. Maximum is "168h".`)
 )
 
+const (
+	dateNowString = "now"
+	maxExpiry     = 7 * (24 * time.Hour)
+)
+
 func getValidPeriodFromFlags() (exchange.ValidPeriod, error) {
 	errs := new(multierror.Error)
 
