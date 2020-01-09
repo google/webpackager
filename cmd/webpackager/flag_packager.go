@@ -22,7 +22,6 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/WICG/webpackage/go/signedexchange/version"
 	"github.com/google/webpackager"
@@ -51,7 +50,7 @@ var (
 	flagPrivateKey   = flag.String("private_key", "", `Private key PEM file. (required)`)
 
 	// Processor
-	flagMaxContentLength = flag.String("max_content_length", "4194304", `Maximum Content-Length of responses allowed for signed exchanges.`)
+	flagSizeLimit = flag.String("size_limit", "4194304", `Maximum size of resources allowed for signed exchanges, or "none" to set no limit.`)
 
 	// PhysicalURLRule
 	flagIndexFile = flag.String("index_file", "index.html", `Filename assumed for slash-ended URLs.`)
@@ -64,8 +63,7 @@ var (
 )
 
 const (
-	dateNowString = "now"
-	maxExpiry     = 7 * (24 * time.Hour)
+	noSizeLimitString = "none"
 )
 
 func getConfigFromFlags() (*webpackager.Config, error) {
@@ -110,6 +108,13 @@ func parseByteSize(s string) (int, error) {
 		return v, errors.New("value must be positive")
 	}
 	return v, nil
+}
+
+func parseSizeLimit(s string) (int, error) {
+	if s == noSizeLimitString {
+		return -1, nil
+	}
+	return parseByteSize(s)
 }
 
 func parseCertURL(s string) (*url.URL, error) {
@@ -167,9 +172,9 @@ func getProcessorFromFlags() (processor.Processor, error) {
 	var err error
 	errs := new(multierror.Error)
 
-	cfg.Preverify.MaxContentLength, err = parseByteSize(*flagMaxContentLength)
+	cfg.Preverify.MaxContentLength, err = parseSizeLimit(*flagSizeLimit)
 	if err != nil {
-		errs = multierror.Append(errs, fmt.Errorf("invalid --max_content_length: %v", err))
+		errs = multierror.Append(errs, fmt.Errorf("invalid --size_limit: %v", err))
 	}
 
 	if err := errs.ErrorOrNil(); err != nil {
