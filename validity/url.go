@@ -17,7 +17,6 @@ package validity
 import (
 	"fmt"
 	"log"
-	"net/http"
 	"net/url"
 	"time"
 
@@ -36,7 +35,7 @@ type ValidityURLRule interface {
 	//
 	// Note ValidityURLRule implementations can retrieve the request URL via
 	// resp.Request.URL.
-	Apply(physurl *url.URL, resp *http.Response, vp exchange.ValidPeriod) (*url.URL, error)
+	Apply(physurl *url.URL, resp *exchange.Response, vp exchange.ValidPeriod) (*url.URL, error)
 }
 
 // DefaultValidityURLRule is the default rule used by webpackager.Packager.
@@ -75,7 +74,7 @@ type appendExtDotLastModified struct {
 	ext string
 }
 
-func (rule *appendExtDotLastModified) Apply(physurl *url.URL, resp *http.Response, vp exchange.ValidPeriod) (*url.URL, error) {
+func (rule *appendExtDotLastModified) Apply(physurl *url.URL, resp *exchange.Response, vp exchange.ValidPeriod) (*url.URL, error) {
 	date := resp.Header.Get("Last-Modified")
 	if date == "" {
 		return toValidityURL(physurl, rule.ext, vp.Date())
@@ -98,7 +97,7 @@ type appendExtDotExchangeDate struct {
 	ext string
 }
 
-func (rule *appendExtDotExchangeDate) Apply(physurl *url.URL, resp *http.Response, vp exchange.ValidPeriod) (*url.URL, error) {
+func (rule *appendExtDotExchangeDate) Apply(physurl *url.URL, resp *exchange.Response, vp exchange.ValidPeriod) (*url.URL, error) {
 	return toValidityURL(physurl, rule.ext, vp.Date())
 }
 

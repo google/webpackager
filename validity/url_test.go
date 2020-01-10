@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"github.com/google/webpackager/exchange"
+	"github.com/google/webpackager/exchange/exchangetest"
 	"github.com/google/webpackager/validity"
 )
 
@@ -99,7 +100,9 @@ func TestAppendExtDotUnixTime(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		got, err := test.rule.Apply(arg, &http.Response{Header: test.header}, test.vp)
+		resp := exchangetest.MakeEmptyResponse(test.url)
+		resp.Header = test.header
+		got, err := test.rule.Apply(arg, resp, test.vp)
 		if err != nil {
 			t.Fatalf("got error(%q), want success", err)
 		}
