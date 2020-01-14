@@ -142,12 +142,6 @@ func (task *packagerTask) run() error {
 	}
 	r.PhysicalURL = purl
 
-	vurl, err := task.getValidityURL(r, rawResp)
-	if err != nil {
-		return err
-	}
-	r.ValidityURL = vurl
-
 	sxg, err := task.createExchange(rawResp)
 	if err != nil {
 		return err
@@ -168,10 +162,6 @@ func (task *packagerTask) getPhysicalURL(r *resource.Resource, resp *http.Respon
 	return u, nil
 }
 
-func (task *packagerTask) getValidityURL(r *resource.Resource, resp *http.Response) (*url.URL, error) {
-	return task.ValidityURLRule.Apply(r.PhysicalURL, resp, task.period)
-}
-
 func (task *packagerTask) createExchange(rawResp *http.Response) (*signedexchange.Exchange, error) {
 	sxgResp, err := exchange.NewResponse(rawResp)
 	if err != nil {
@@ -180,6 +170,13 @@ func (task *packagerTask) createExchange(rawResp *http.Response) (*signedexchang
 	if err := task.Processor.Process(sxgResp); err != nil {
 		return nil, err
 	}
+
+	pu := task.resource.PhysicalURL
+	vu, err := task.ValidityURLRule.Apply(pu, sxgResp, task.period)
+	if err != nil {
+		return nil, err
+	}
+	task.resource.ValidityURL = vu
 
 	for _, p := range sxgResp.Preloads {
 		for _, r := range p.Resources() {
@@ -190,8 +187,6 @@ func (task *packagerTask) createExchange(rawResp *http.Response) (*signedexchang
 			task.packagerTaskRunner.run(task, req, r)
 		}
 	}
-
-	vu := task.resource.ValidityURL
 
 	sxg, err := task.ExchangeFactory.NewExchange(sxgResp, task.period, vu)
 	if err != nil {
