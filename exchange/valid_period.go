@@ -14,7 +14,10 @@
 
 package exchange
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
 // ValidPeriod represents the period the signed exchange is valid for.
 type ValidPeriod struct {
@@ -54,4 +57,9 @@ func (vp ValidPeriod) Lifetime() time.Duration {
 // the date and expires parameters, both inclusive.
 func (vp ValidPeriod) Contains(t time.Time) bool {
 	return !t.Before(vp.date) && !t.After(vp.expires)
+}
+
+// String returns a human-readable string.
+func (vp ValidPeriod) String() string {
+	return fmt.Sprintf("[%s] to [%s]", vp.date, vp.expires)
 }

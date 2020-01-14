@@ -38,7 +38,7 @@ func run() error {
 	if err != nil {
 		return err
 	}
-	vp, err := getValidPeriodFromFlags()
+	date, err := getDateFromFlags()
 	if err != nil {
 		return err
 	}
@@ -47,7 +47,7 @@ func run() error {
 	errs := new(multierror.Error)
 
 	for _, u := range urls {
-		if err := pkg.Run(u, vp); err != nil {
+		if err := pkg.Run(u, date); err != nil {
 			errs = multierror.Append(errs, err)
 		}
 	}

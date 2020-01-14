@@ -17,8 +17,8 @@ package webpackager
 import (
 	"net/http"
 	"net/url"
+	"time"
 
-	"github.com/google/webpackager/exchange"
 	"github.com/google/webpackager/resource"
 )
 
@@ -48,12 +48,12 @@ func NewPackager(config Config) *Packager {
 //
 // Run does not run the process when ResourceCache already has an entry for
 // url.
-func (pkg *Packager) Run(url *url.URL, vp exchange.ValidPeriod) error {
+func (pkg *Packager) Run(url *url.URL, sxgDate time.Time) error {
 	req, err := newGetRequest(url)
 	if err != nil {
 		return err
 	}
-	return pkg.RunForRequest(req, vp)
+	return pkg.RunForRequest(req, sxgDate)
 }
 
 // RunForRequest is like Run, but takes an http.Request instead of a URL
@@ -61,8 +61,8 @@ func (pkg *Packager) Run(url *url.URL, vp exchange.ValidPeriod) error {
 //
 // RunForRequest uses req directly: RequestTweaker mutates req; FetchClient
 // sends req to retrieve the HTTP response.
-func (pkg *Packager) RunForRequest(req *http.Request, vp exchange.ValidPeriod) error {
-	runner := newTaskRunner(pkg, vp)
+func (pkg *Packager) RunForRequest(req *http.Request, sxgDate time.Time) error {
+	runner := newTaskRunner(pkg, sxgDate)
 	runner.run(nil, req, resource.NewResource(req.URL))
 	return runner.err()
 }

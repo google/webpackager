@@ -22,10 +22,12 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/WICG/webpackage/go/signedexchange/version"
 	"github.com/google/webpackager"
 	"github.com/google/webpackager/exchange"
+	"github.com/google/webpackager/exchange/vprule"
 	"github.com/google/webpackager/fetch"
 	"github.com/google/webpackager/internal/certutil"
 	"github.com/google/webpackager/internal/customflag"
@@ -50,7 +52,10 @@ var (
 	flagPrivateKey   = flag.String("private_key", "", `Private key PEM file. (required)`)
 
 	// Processor
-	flagSizeLimit = flag.String("size_limit", "4194304", fmt.Sprintf(`Maximum size of resources in bytes allowed for signed exchanges, or %q to set no limit.`, noSizeLimitString))
+	flagSizeLimit = flag.String("size_limit", "4194304", `Maximum size of resources in bytes allowed for signed exchanges, or "none" to set no limit.`)
+
+	// ValidPeriodRule
+	flagExpiry = flag.String("expiry", "1h", `Lifetime of signed exchanges. Maximum is "168h".`)
 
 	// PhysicalURLRule
 	flagIndexFile = flag.String("index_file", "index.html", `Filename assumed for slash-ended URLs.`)
@@ -64,6 +69,8 @@ var (
 
 const (
 	noSizeLimitString = "none"
+
+	maxExpiry = 7 * (24 * time.Hour)
 )
 
 func getConfigFromFlags() (*webpackager.Config, error) {
@@ -78,6 +85,8 @@ func getConfigFromFlags() (*webpackager.Config, error) {
 	cfg.ValidityURLRule, err = getValidityURLRuleFromFlags()
 	errs = multierror.Append(errs, err)
 	cfg.Processor, err = getProcessorFromFlags()
+	errs = multierror.Append(errs, err)
+	cfg.ValidPeriodRule, err = getValidPeriodRuleFromFlags()
 	errs = multierror.Append(errs, err)
 	cfg.ExchangeFactory, err = getExchangeFactoryFromFlags()
 	errs = multierror.Append(errs, err)
@@ -106,6 +115,20 @@ func parseByteSize(s string) (int, error) {
 	}
 	if v <= 0 {
 		return v, errors.New("value must be positive")
+	}
+	return v, nil
+}
+
+func parseDuration(s string, max time.Duration) (time.Duration, error) {
+	v, err := time.ParseDuration(s)
+	if err != nil {
+		return 0, err
+	}
+	if v <= 0 {
+		return 0, errors.New("duration must be positive")
+	}
+	if v > max {
+		return 0, errors.New("duration too large")
 	}
 	return v, nil
 }
@@ -182,6 +205,21 @@ func getProcessorFromFlags() (processor.Processor, error) {
 	}
 	return complexproc.NewComprehensiveProcessor(cfg), nil
 }
+
+func getValidPeriodRuleFromFlags() (vprule.Rule, error) {
+	errs := new(multierror.Error)
+
+	expiry, err := parseDuration(*flagExpiry, maxExpiry)
+	if err != nil {
+		errs = multierror.Append(errs, fmt.Errorf("invalid --expiry: %v", err))
+	}
+
+	if err := errs.ErrorOrNil(); err != nil {
+		return nil, err
+	}
+	return vprule.FixedLifetime(expiry), nil
+}
+
 func getExchangeFactoryFromFlags() (*exchange.Factory, error) {
 	fty := new(exchange.Factory)
 	var err error

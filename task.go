@@ -43,15 +43,15 @@ var (
 type packagerTaskRunner struct {
 	*Packager
 
-	period exchange.ValidPeriod
+	date   time.Time
 	errs   *multierror.Error
 	active map[string]bool // Keyed by URLs.
 }
 
-func newTaskRunner(p *Packager, vp exchange.ValidPeriod) *packagerTaskRunner {
+func newTaskRunner(p *Packager, date time.Time) *packagerTaskRunner {
 	return &packagerTaskRunner{
 		p,
-		vp,
+		date,
 		new(multierror.Error),
 		make(map[string]bool),
 	}
@@ -96,10 +96,6 @@ func (task *packagerTask) parentRequest() *http.Request {
 	return task.parent.request
 }
 
-func (task *packagerTask) date() time.Time {
-	return task.period.Date()
-}
-
 func (task *packagerTask) run() error {
 	r := task.resource
 
@@ -113,7 +109,7 @@ func (task *packagerTask) run() error {
 		return err
 	}
 	if cached != nil {
-		if _, err := task.ExchangeFactory.Verify(cached.Exchange, task.date()); err == nil {
+		if _, err := task.ExchangeFactory.Verify(cached.Exchange, task.date); err == nil {
 			log.Printf("reusing the existing signed exchange for %s", r.RequestURL)
 			*r = *cached
 			return nil
@@ -171,8 +167,10 @@ func (task *packagerTask) createExchange(rawResp *http.Response) (*signedexchang
 		return nil, err
 	}
 
+	vp := task.ValidPeriodRule.Get(sxgResp, task.date)
+
 	pu := task.resource.PhysicalURL
-	vu, err := task.ValidityURLRule.Apply(pu, sxgResp, task.period)
+	vu, err := task.ValidityURLRule.Apply(pu, sxgResp, vp)
 	if err != nil {
 		return nil, err
 	}
@@ -188,11 +186,11 @@ func (task *packagerTask) createExchange(rawResp *http.Response) (*signedexchang
 		}
 	}
 
-	sxg, err := task.ExchangeFactory.NewExchange(sxgResp, task.period, vu)
+	sxg, err := task.ExchangeFactory.NewExchange(sxgResp, vp, vu)
 	if err != nil {
 		return nil, err
 	}
-	if _, err := task.ExchangeFactory.Verify(sxg, task.date()); err != nil {
+	if _, err := task.ExchangeFactory.Verify(sxg, task.date); err != nil {
 		return nil, err
 	}
 
