@@ -21,6 +21,13 @@ import (
 	"github.com/google/webpackager/resource/preload"
 )
 
+// These are keys used in ExtraData. They are prefixed with "X-WebPackager"
+// to avoid confusion with real HTTP headers.
+const (
+	// See htmltask.ExtractSubContentTypes.
+	SubContentType = "Webpackager-Sub-Content-Type"
+)
+
 const linkHeader = "Link"
 
 // Response represents a pre-signed HTTP exchange to make a signed exchange
@@ -38,6 +45,14 @@ type Response struct {
 
 	// Preloads represents preload links to add to HTTP headers.
 	Preloads []preload.Preload
+
+	// ExtraData contains information extracted from this Response and
+	// used inside the program. Processors extract information and append
+	// it with an arbitrary key. Subsequent processors, ValidPeriodRules,
+	// and ValidityURLRules can reference the information using that key.
+	//
+	// The signed exchange will not include ExtraData.
+	ExtraData http.Header
 }
 
 // NewResponse creates and initializes a new Response wrapping resp.
@@ -49,7 +64,8 @@ func NewResponse(resp *http.Response) (*Response, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Response{resp, payload, nil}, nil
+	sxgResp := &Response{resp, payload, nil, make(http.Header)}
+	return sxgResp, nil
 }
 
 // AddPreload adds p to resp.Preloads if p is not already in resp.Preloads,

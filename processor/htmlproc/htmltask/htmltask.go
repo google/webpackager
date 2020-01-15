@@ -33,6 +33,7 @@ type HTMLTask interface {
 
 // DefaultTaskSet defines the set of HTMLTasks used in the default config.
 var DefaultTaskSet = []HTMLTask{
+	ExtractSubContentTypes(),
 	ExtractPreloadTags(),
 	PreloadStylesheets(),
 }
