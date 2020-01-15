@@ -31,7 +31,7 @@ const (
 // ExtractSubContentTypes detects internal subcontents in HTML docuemnt,
 // such as CSS (<style>) and JavaScript (<script> without src attribute),
 // and adds their MIME types (e.g. "text/style", "application/javascript")
-// to "Sub-Content-Type" (exchange.SubContentType) of ExtraData.
+// to ExtraData, using exchange.SubContentType as the key.
 func ExtractSubContentTypes() HTMLTask {
 	return &extractSubContentTypes{}
 }
