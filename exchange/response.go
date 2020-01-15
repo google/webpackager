@@ -21,10 +21,11 @@ import (
 	"github.com/google/webpackager/resource/preload"
 )
 
-// Keys used in ExtraData.
+// These are keys used in ExtraData. They are prefixed with "X-WebPackager"
+// to avoid confusion with real HTTP headers.
 const (
 	// See htmltask.ExtractSubContentTypes.
-	SubContentType = "Sub-Content-Type"
+	SubContentType = "X-Webpackager-Sub-Content-Type"
 )
 
 const linkHeader = "Link"
@@ -45,11 +46,12 @@ type Response struct {
 	// Preloads represents preload links to add to HTTP headers.
 	Preloads []preload.Preload
 
-	// ExtraData contains information extracted by processors to be used by
-	// subsequent processors, ValidPeriodRules, and ValidityURLRules.
+	// ExtraData contains information extracted from this Response and
+	// used inside the program. Processors extract information and append
+	// it with an arbitrary key. Subsequent processors, ValidPeriodRules,
+	// and ValidityURLRules can reference the information using that key.
 	//
-	// ExtraData is used only inside the program. It is not included in the
-	// signed exchange.
+	// The signed exchange will not include ExtraData.
 	ExtraData http.Header
 }
 
