@@ -16,6 +16,7 @@ package webpackager
 
 import (
 	"github.com/google/webpackager/exchange"
+	"github.com/google/webpackager/exchange/vprule"
 	"github.com/google/webpackager/fetch"
 	"github.com/google/webpackager/processor"
 	"github.com/google/webpackager/processor/complexproc"
@@ -69,6 +70,12 @@ type Config struct {
 	// See package processor for details.
 	Processor processor.Processor
 
+	// ValidPeriodRule specifies the rule to determine the validity period
+	// of signed exchanges.
+	//
+	// nil implies vprule.DefaultRule.
+	ValidPeriodRule vprule.Rule
+
 	// ExchangeFactory specifies encoding/signing parameters for producing
 	// signed exchanges.
 	//
@@ -106,6 +113,9 @@ func (cfg *Config) populateDefaults() {
 	}
 	if cfg.Processor == nil {
 		cfg.Processor = complexproc.DefaultProcessor
+	}
+	if cfg.ValidPeriodRule == nil {
+		cfg.ValidPeriodRule = vprule.DefaultRule
 	}
 	if cfg.ResourceCache == nil {
 		cfg.ResourceCache = cache.NewOnMemoryCache()

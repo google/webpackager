@@ -24,6 +24,7 @@ import (
 	"github.com/WICG/webpackage/go/signedexchange/version"
 	"github.com/google/webpackager"
 	"github.com/google/webpackager/exchange"
+	"github.com/google/webpackager/exchange/vprule"
 	"github.com/google/webpackager/fetch"
 	"github.com/google/webpackager/fetch/fetchtest"
 	"github.com/google/webpackager/internal/certutil/certtest"
@@ -31,13 +32,13 @@ import (
 )
 
 var (
-	date    = time.Date(2019, time.May, 13, 10, 30, 0, 0, time.UTC)
-	expires = time.Date(2019, time.May, 20, 10, 30, 0, 0, time.UTC)
+	date = time.Date(2019, time.May, 13, 10, 30, 0, 0, time.UTC)
 )
 
 func makeConfig(server *httptest.Server) webpackager.Config {
 	return webpackager.Config{
-		FetchClient: fetchtest.NewFetchClient(server),
+		FetchClient:     fetchtest.NewFetchClient(server),
+		ValidPeriodRule: vprule.FixedLifetime(7 * 24 * time.Hour),
 		ExchangeFactory: &exchange.Factory{
 			Version:      version.Version1b3,
 			MIRecordSize: 4096,
@@ -64,8 +65,7 @@ func TestSameDomain(t *testing.T) {
 	defer server.Close()
 
 	pkg := webpackager.NewPackager(makeConfig(server))
-	pkg.Run(urlutil.MustParse("https://example.org/hello.html"),
-		exchange.NewValidPeriod(date, expires))
+	pkg.Run(urlutil.MustParse("https://example.org/hello.html"), date)
 
 	// style.css is on the same domain thus fetched.
 	verifyRequests(t, pkg, []string{
@@ -96,8 +96,7 @@ func TestCrossDomain(t *testing.T) {
 	defer server.Close()
 
 	pkg := webpackager.NewPackager(makeConfig(server))
-	pkg.Run(urlutil.MustParse("https://example.org/hello.html"),
-		exchange.NewValidPeriod(date, expires))
+	pkg.Run(urlutil.MustParse("https://example.org/hello.html"), date)
 
 	// style.css is on a cross origin and not fetched: DefaultProcessor
 	// includes RequireSameOrigin.
@@ -128,10 +127,8 @@ func TestDupResource(t *testing.T) {
 	defer server.Close()
 
 	pkg := webpackager.NewPackager(makeConfig(server))
-	pkg.Run(urlutil.MustParse("https://example.org/hello.html"),
-		exchange.NewValidPeriod(date, expires))
-	pkg.Run(urlutil.MustParse("https://example.org/quick.html"),
-		exchange.NewValidPeriod(date, expires))
+	pkg.Run(urlutil.MustParse("https://example.org/hello.html"), date)
+	pkg.Run(urlutil.MustParse("https://example.org/quick.html"), date)
 
 	// style.css should be fetched only once.
 	verifyRequests(t, pkg, []string{
@@ -172,8 +169,7 @@ func TestRequestTweaker(t *testing.T) {
 	config := makeConfig(server)
 	config.RequestTweaker = fetch.SetCustomHeaders(header)
 	pkg := webpackager.NewPackager(config)
-	pkg.Run(urlutil.MustParse("https://example.org/hello.html"),
-		exchange.NewValidPeriod(date, expires))
+	pkg.Run(urlutil.MustParse("https://example.org/hello.html"), date)
 
 	for _, req := range pkg.FetchClient.(*fetchtest.FetchClient).Requests() {
 		if got := req.Header.Get("User-Agent"); got != dummyUA {
@@ -215,7 +211,7 @@ func TestNoExchanges(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			pkg := webpackager.NewPackager(makeConfig(server))
 			url := urlutil.MustParse(test.url)
-			err := pkg.Run(url, exchange.NewValidPeriod(date, expires))
+			err := pkg.Run(url, date)
 
 			verifyErrorURLs(t, err, []string{test.url})
 
@@ -252,8 +248,7 @@ func TestSubresourceErrors(t *testing.T) {
 	defer server.Close()
 
 	pkg := webpackager.NewPackager(makeConfig(server))
-	err := pkg.Run(urlutil.MustParse("https://example.org/hello.html"),
-		exchange.NewValidPeriod(date, expires))
+	err := pkg.Run(urlutil.MustParse("https://example.org/hello.html"), date)
 
 	// err should indicate all invalid subresources.
 	verifyErrorURLs(t, err, []string{
