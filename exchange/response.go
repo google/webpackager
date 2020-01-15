@@ -25,7 +25,7 @@ import (
 // to avoid confusion with real HTTP headers.
 const (
 	// See htmltask.ExtractSubContentTypes.
-	SubContentType = "X-Webpackager-Sub-Content-Type"
+	SubContentType = "Webpackager-Sub-Content-Type"
 )
 
 const linkHeader = "Link"
