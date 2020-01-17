@@ -29,8 +29,8 @@ import (
 //
 // PerContentType looks for a rule applicable to the resp's Content-Type
 // first. If there is none, PerContentType also looks for a rule for each
-// Sub-Content-Type (resp.ExtraData[exchange.SubContentType]). If there is
-// still no rule to apply, PerContentType applies ruleElse.
+// Webpackager-Sub-Content-Type (resp.ExtraData[exchange.SubContentType]).
+// If there is still no rule to apply, PerContentType applies ruleElse.
 func PerContentType(rules map[string]Rule, ruleElse Rule) Rule {
 	return &perContentType{rules, ruleElse}
 }
