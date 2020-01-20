@@ -39,27 +39,62 @@ func makeResponse(url, html string) *exchange.Response {
 }
 
 func TestHTMLProcessor_Default(t *testing.T) {
-	proc := htmlproc.NewHTMLProcessor(htmlproc.Config{
-		TaskSet: htmltask.DefaultTaskSet,
-	})
-	html := `<!doctype html><link rel="stylesheet" href="style.css">` +
-		`<link rel="preload" href="icons.svg" as="image">`
-	resp := makeResponse("https://example.com/test.html", html)
-
-	if err := proc.Process(resp); err != nil {
-		t.Errorf("got error(%v), want success", err)
+	tests := []struct {
+		name  string
+		html  string
+		tasks []htmltask.HTMLTask
+		want  []string
+	}{
+		{
+			name: "ConservativeTaskSet",
+			html: fmt.Sprint(
+				`<!doctype html>`,
+				`<link rel="preload" href="icons.svg" as="image">`,
+				`<link rel="stylesheet" href="style.css">`,
+				`<script src="script.js"></script>`,
+			),
+			tasks: htmltask.ConservativeTaskSet,
+			want: []string{
+				`<https://example.com/icons.svg>;rel="preload";as="image"`,
+			},
+		},
+		{
+			name: "AggressiveTaskSet",
+			html: fmt.Sprint(
+				`<!doctype html>`,
+				`<link rel="preload" href="icons.svg" as="image">`,
+				`<link rel="stylesheet" href="style.css">`,
+				`<script src="script.js"></script>`,
+			),
+			tasks: htmltask.AggressiveTaskSet,
+			want: []string{
+				`<https://example.com/icons.svg>;rel="preload";as="image"`,
+				`<https://example.com/style.css>;rel="preload";as="style"`,
+				`<https://example.com/script.js>;rel="preload";as="script"`,
+			},
+		},
 	}
 
-	got := make([]string, len(resp.Preloads))
-	for i, p := range resp.Preloads {
-		got[i] = p.Header()
-	}
-	want := []string{
-		`<https://example.com/icons.svg>;rel="preload";as="image"`,
-		`<https://example.com/style.css>;rel="preload";as="style"`,
-	}
-	if !reflect.DeepEqual(got, want) {
-		t.Errorf("resp.Preloads = %#q, want %#q", got, want)
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			proc := htmlproc.NewHTMLProcessor(htmlproc.Config{
+				TaskSet: test.tasks,
+			})
+			resp := makeResponse("https://example.com/test.html", test.html)
+
+			if err := proc.Process(resp); err != nil {
+				t.Errorf("got error(%v), want success", err)
+			}
+
+			got := make([]string, len(resp.Preloads))
+			for i, p := range resp.Preloads {
+				got[i] = p.Header()
+			}
+			want := []string{}
+			if !reflect.DeepEqual(got, test.want) {
+				t.Errorf("resp.Preloads = %#q, want %#q", got, want)
+			}
+		})
 	}
 }
 
@@ -82,8 +117,7 @@ func TestHTMLProcessor_Success(t *testing.T) {
 			}),
 		},
 	})
-	html := `<!doctype html><link rel="stylesheet" href="style.css">` +
-		`<link rel="preload" href="icons.svg" as="image">`
+	html := `<!doctype html><p>Hello, world.</p>`
 	resp := makeResponse("https://example.com/test.html", html)
 
 	if err := proc.Process(resp); err != nil {
@@ -114,8 +148,7 @@ func TestHTMLProcessor_Error(t *testing.T) {
 			}),
 		},
 	})
-	html := `<!doctype html><link rel="stylesheet" href="style.css">` +
-		`<link rel="preload" href="icons.svg" as="image">`
+	html := `<!doctype html><p>Hello, world.</p>`
 	resp := makeResponse("https://example.com/test.html", html)
 
 	if err := proc.Process(resp); err != errDummy {

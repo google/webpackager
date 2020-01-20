@@ -17,15 +17,12 @@ package processor_test
 import (
 	"github.com/google/webpackager/processor"
 	"github.com/google/webpackager/processor/htmlproc"
-	"github.com/google/webpackager/processor/htmlproc/htmltask"
 )
 
 func ExampleMultiplexedProcessor() processor.Processor {
-	htmlProc := htmlproc.NewHTMLProcessor(htmlproc.Config{
-		TaskSet: htmltask.DefaultTaskSet,
-	})
+	html := htmlproc.NewHTMLProcessor(htmlproc.Config{})
 	return processor.MultiplexedProcessor{
-		"text/html":             htmlProc,
-		"application/xhtml+xml": htmlProc,
+		"text/html":             html,
+		"application/xhtml+xml": html,
 	}
 }
