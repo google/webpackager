@@ -33,6 +33,7 @@ import (
 	"github.com/google/webpackager/internal/customflag"
 	"github.com/google/webpackager/processor"
 	"github.com/google/webpackager/processor/complexproc"
+	"github.com/google/webpackager/processor/htmlproc/htmltask"
 	"github.com/google/webpackager/resource/cache"
 	"github.com/google/webpackager/resource/cache/filewrite"
 	"github.com/google/webpackager/urlrewrite"
@@ -199,6 +200,12 @@ func getProcessorFromFlags() (processor.Processor, error) {
 	if err != nil {
 		errs = multierror.Append(errs, fmt.Errorf("invalid --size_limit: %v", err))
 	}
+
+	var tasks []htmltask.HTMLTask
+	tasks = append(tasks, htmltask.ConservativeTaskSet...)
+	tasks = append(tasks, htmltask.PreloadStylesheets())
+
+	cfg.HTML.TaskSet = tasks
 
 	if err := errs.ErrorOrNil(); err != nil {
 		return nil, err

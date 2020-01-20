@@ -31,11 +31,18 @@ type HTMLTask interface {
 	Run(resp *htmldoc.HTMLResponse) error
 }
 
-// DefaultTaskSet defines the set of HTMLTasks used in the default config.
-var DefaultTaskSet = []HTMLTask{
+// ConservativeTaskSet is the set of HTMLTasks used in the default config.
+// It consists only of HTMLTasks that almost always work well.
+var ConservativeTaskSet = []HTMLTask{
+	ExtractSubContentTypes(),
+	ExtractPreloadTags(),
+}
+
+// AggressiveTaskSet gets as many resources preloaded as Web Packager can.
+// It includes HTMLTasks that might make negative effect in some cases.
+var AggressiveTaskSet = []HTMLTask{
 	ExtractSubContentTypes(),
 	ExtractPreloadTags(),
 	PreloadStylesheets(),
+	InsecurePreloadScripts(),
 }
-
-// TODO(yuizumi): Consider defining other presets, e.g. AggressiveTaskSet.

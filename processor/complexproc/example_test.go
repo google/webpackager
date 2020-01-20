@@ -30,7 +30,7 @@ func Example_customize() processor.Processor {
 	// Have your HTMLTask run in the HTMLProcessor.
 	config := complexproc.Config{
 		HTML: htmlproc.Config{
-			TaskSet: append(htmltask.DefaultTaskSet, yourTask),
+			TaskSet: append(htmltask.ConservativeTaskSet, yourTask),
 		},
 	}
 

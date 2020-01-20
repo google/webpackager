@@ -29,6 +29,9 @@ import (
 	"github.com/google/webpackager/fetch/fetchtest"
 	"github.com/google/webpackager/internal/certutil/certtest"
 	"github.com/google/webpackager/internal/urlutil"
+	"github.com/google/webpackager/processor/complexproc"
+	"github.com/google/webpackager/processor/htmlproc"
+	"github.com/google/webpackager/processor/htmlproc/htmltask"
 )
 
 var (
@@ -36,8 +39,15 @@ var (
 )
 
 func makeConfig(server *httptest.Server) webpackager.Config {
+	var tasks []htmltask.HTMLTask
+	tasks = append(tasks, htmltask.ConservativeTaskSet...)
+	tasks = append(tasks, htmltask.PreloadStylesheets())
+
 	return webpackager.Config{
-		FetchClient:     fetchtest.NewFetchClient(server),
+		FetchClient: fetchtest.NewFetchClient(server),
+		Processor: complexproc.NewComprehensiveProcessor(complexproc.Config{
+			HTML: htmlproc.Config{TaskSet: tasks},
+		}),
 		ValidPeriodRule: vprule.FixedLifetime(7 * 24 * time.Hour),
 		ExchangeFactory: &exchange.Factory{
 			Version:      version.Version1b3,
