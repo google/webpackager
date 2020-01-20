@@ -38,7 +38,7 @@ func makeResponse(url, html string) *exchange.Response {
 	return exchangetest.MakeResponse(url, resp)
 }
 
-func TestHTMLProcessor_Default(t *testing.T) {
+func TestHTMLProcessor_Presets(t *testing.T) {
 	tests := []struct {
 		name  string
 		html  string
