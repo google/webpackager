@@ -15,7 +15,6 @@
 package complexproc_test
 
 import (
-	"github.com/google/webpackager/processor"
 	"github.com/google/webpackager/processor/complexproc"
 	"github.com/google/webpackager/processor/htmlproc"
 	"github.com/google/webpackager/processor/htmlproc/htmltask"
@@ -23,7 +22,7 @@ import (
 
 // This example constructs a new Processor that runs a custom HTMLTask and
 // behaves otherwise the same as DefaultProcessor.
-func Example_customize() processor.Processor {
+func Example_customize() {
 	// Instantiate your custom HTMLTask.
 	yourTask := NewCustomHTMLTask()
 
@@ -35,5 +34,5 @@ func Example_customize() processor.Processor {
 	}
 
 	// Create the ComprehensiveProcessor.
-	return complexproc.NewComprehensiveProcessor(config)
+	_ = complexproc.NewComprehensiveProcessor(config)
 }

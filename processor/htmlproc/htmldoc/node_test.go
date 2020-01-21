@@ -36,13 +36,19 @@ func TestFindAttr(t *testing.T) {
 			name: "img-src",
 			html: `<img src="hello.svg" title="Hello!!">`,
 			key:  "src",
-			want: &html.Attribute{"", "src", "hello.svg"},
+			want: &html.Attribute{
+				Key: "src",
+				Val: "hello.svg",
+			},
 		},
 		{
 			name: "img-title",
 			html: `<img src="hello.svg" title="Hello!!">`,
 			key:  "title",
-			want: &html.Attribute{"", "title", "Hello!!"},
+			want: &html.Attribute{
+				Key: "title",
+				Val: "Hello!!",
+			},
 		},
 		{
 			name: "img-width",
@@ -55,13 +61,18 @@ func TestFindAttr(t *testing.T) {
 			html: `<IMG Src="hello.svg" Title="Hello!!">`,
 			key:  "TITLE",
 			// html.Parse() seems to lower the attribute name.
-			want: &html.Attribute{"", "title", "Hello!!"},
+			want: &html.Attribute{
+				Key: "title",
+				Val: "Hello!!",
+			},
 		},
 		{
 			name: "input-required",
 			html: `<input name="q" value="hello" required>`,
 			key:  "required",
-			want: &html.Attribute{"", "required", ""},
+			want: &html.Attribute{
+				Key: "required",
+			},
 		},
 		{
 			name: "svg-xlink:title",
@@ -79,7 +90,10 @@ func TestFindAttr(t *testing.T) {
 			name: "svg-width",
 			html: `<svg width="160" height="160"></svg>`,
 			key:  "width",
-			want: &html.Attribute{"", "width", "160"},
+			want: &html.Attribute{
+				Key: "width",
+				Val: "160",
+			},
 		},
 	}
 
@@ -98,7 +112,7 @@ func TestFindAttr(t *testing.T) {
 				return
 			}
 			if got == nil || test.want == nil || *got != *test.want {
-				t.Errorf("got %v, want %v", got, test.want)
+				t.Errorf("got %#v, want %#v", got, test.want)
 			}
 		})
 	}

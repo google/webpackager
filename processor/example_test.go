@@ -19,9 +19,9 @@ import (
 	"github.com/google/webpackager/processor/htmlproc"
 )
 
-func ExampleMultiplexedProcessor() processor.Processor {
+func ExampleMultiplexedProcessor() {
 	html := htmlproc.NewHTMLProcessor(htmlproc.Config{})
-	return processor.MultiplexedProcessor{
+	_ = processor.MultiplexedProcessor{
 		"text/html":             html,
 		"application/xhtml+xml": html,
 	}
