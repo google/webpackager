@@ -53,10 +53,14 @@ var (
 	flagPrivateKey   = flag.String("private_key", "", `Private key PEM file. (required)`)
 
 	// Processor
-	flagSizeLimit = flag.String("size_limit", "4194304", `Maximum size of resources in bytes allowed for signed exchanges, or "none" to set no limit.`)
+	flagSizeLimit  = flag.String("size_limit", "4194304", `Maximum size of resources in bytes allowed for signed exchanges, or "none" to set no limit.`)
+	flagPreloadCSS = flag.Bool("preload_css", true, `Get CSS preloaded.`)
+	flagPreloadJS  = flag.Bool("preload_js", false, `Get JavaScript preloaded. USE WITH CAUTION: your scripts may remain cached and used until the expiry, even if you find security issues later.`)
 
 	// ValidPeriodRule
-	flagExpiry = flag.String("expiry", "1h", `Lifetime of signed exchanges. Maximum is "168h".`)
+	flagExpiry           = flag.String("expiry", "72h", `Lifetime of signed exchanges. This value is not applied to JavaScript (see: --js_expiry). Maximum is "168h".`)
+	flagJSExpiry         = flag.String("js_expiry", "12h", `Lifetime of signed exchanges for JavaScript. Also applied to HTML with inline JavaScript. Maximum is "24h" by default, "168h" with --insecure_js_expiry.`)
+	flagInsecureJSExpiry = flag.Bool("insecure_js_expiry", false, `Allow --js_expiry to be longer than "24h". USE WITH CAUTION: your scripts may remain cached and used until the expiry, even if you find security issues later.`)
 
 	// PhysicalURLRule
 	flagIndexFile = flag.String("index_file", "index.html", `Filename assumed for slash-ended URLs.`)
@@ -71,7 +75,8 @@ var (
 const (
 	noSizeLimitString = "none"
 
-	maxExpiry = 7 * (24 * time.Hour)
+	maxExpiry       = 7 * (24 * time.Hour)
+	maxGoodJSExpiry = 1 * (24 * time.Hour)
 )
 
 func getConfigFromFlags() (*webpackager.Config, error) {
@@ -201,16 +206,27 @@ func getProcessorFromFlags() (processor.Processor, error) {
 		errs = multierror.Append(errs, fmt.Errorf("invalid --size_limit: %v", err))
 	}
 
-	var tasks []htmltask.HTMLTask
-	tasks = append(tasks, htmltask.ConservativeTaskSet...)
-	tasks = append(tasks, htmltask.PreloadStylesheets())
-
-	cfg.HTML.TaskSet = tasks
+	cfg.HTML.TaskSet = getHTMLTaskSetFromFlags()
 
 	if err := errs.ErrorOrNil(); err != nil {
 		return nil, err
 	}
 	return complexproc.NewComprehensiveProcessor(cfg), nil
+}
+
+func getHTMLTaskSetFromFlags() []htmltask.HTMLTask {
+	var tasks []htmltask.HTMLTask
+
+	tasks = append(tasks, htmltask.ConservativeTaskSet...)
+
+	if *flagPreloadCSS {
+		tasks = append(tasks, htmltask.PreloadStylesheets())
+	}
+	if *flagPreloadJS {
+		tasks = append(tasks, htmltask.InsecurePreloadScripts())
+	}
+
+	return tasks
 }
 
 func getValidPeriodRuleFromFlags() (vprule.Rule, error) {
@@ -221,10 +237,28 @@ func getValidPeriodRuleFromFlags() (vprule.Rule, error) {
 		errs = multierror.Append(errs, fmt.Errorf("invalid --expiry: %v", err))
 	}
 
+	maxJSExpiry := maxGoodJSExpiry
+	if *flagInsecureJSExpiry {
+		maxJSExpiry = maxExpiry
+	}
+	jsExpiry, err := parseDuration(*flagJSExpiry, maxJSExpiry)
+	if err != nil {
+		errs = multierror.Append(errs, fmt.Errorf("invalid --js_expiry: %v", err))
+	}
+
 	if err := errs.ErrorOrNil(); err != nil {
 		return nil, err
 	}
-	return vprule.FixedLifetime(expiry), nil
+
+	rule := vprule.PerContentType(
+		map[string]vprule.Rule{
+			"application/javascript":   vprule.FixedLifetime(jsExpiry),
+			"text/javascript":          vprule.FixedLifetime(jsExpiry),
+			"application/x-javascript": vprule.FixedLifetime(jsExpiry),
+		},
+		vprule.FixedLifetime(expiry),
+	)
+	return rule, nil
 }
 
 func getExchangeFactoryFromFlags() (*exchange.Factory, error) {
