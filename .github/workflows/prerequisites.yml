@@ -1,4 +1,4 @@
-name: Prepush checks
+name: Check prerequisites
 on: [push, pull_request]
 jobs:
   check-format:
