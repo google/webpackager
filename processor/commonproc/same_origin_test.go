@@ -15,9 +15,9 @@
 package commonproc_test
 
 import (
-	"reflect"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/google/webpackager/exchange/exchangetest"
 	"github.com/google/webpackager/internal/urlutil"
 	"github.com/google/webpackager/processor/commonproc"
@@ -48,8 +48,8 @@ func TestApplySameOriginPolicy(t *testing.T) {
 	if err := commonproc.ApplySameOriginPolicy.Process(resp); err != nil {
 		t.Fatalf("got error(%q), want success", err)
 	}
-	if !reflect.DeepEqual(resp.Preloads, want) {
-		t.Errorf("resp.Preloads = %v, want %v", resp.Preloads, want)
+	if diff := cmp.Diff(want, resp.Preloads); diff != "" {
+		t.Errorf("resp.Preloads mismatch (-want +got):\n%s", diff)
 	}
 }
 

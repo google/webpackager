@@ -18,8 +18,9 @@ import (
 	"bytes"
 	"io/ioutil"
 	"net/url"
-	"reflect"
 	"testing"
+
+	"github.com/google/go-cmp/cmp"
 )
 
 func TestFakeCertFetcher(t *testing.T) {
@@ -83,8 +84,8 @@ func TestGetCertificates(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			if got := GetCertificates(cbor); !reflect.DeepEqual(got, want) {
-				t.Errorf("got %#v, want %#v", got, want)
+			if diff := cmp.Diff(want, GetCertificates(cbor)); diff != "" {
+				t.Errorf("GetCertificates() mismatch (-want +got):\n%s", diff)
 			}
 		})
 	}

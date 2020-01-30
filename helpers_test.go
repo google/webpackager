@@ -17,11 +17,11 @@ package webpackager_test
 import (
 	"fmt"
 	"net/http"
-	"reflect"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/google/webpackager"
 	"github.com/google/webpackager/fetch/fetchtest"
 	multierror "github.com/hashicorp/go-multierror"
@@ -89,8 +89,8 @@ func verifyErrorURLs(t *testing.T, err error, want []string) {
 	for i, we := range wes {
 		got[i] = we.URL.String()
 	}
-	if !reflect.DeepEqual(got, want) {
-		t.Errorf("(Error URLs) = %q, want %q", got, want)
+	if diff := cmp.Diff(want, got); diff != "" {
+		t.Errorf("Error URLs mismatch (-want +got):\n%s", diff)
 	}
 }
 
@@ -133,7 +133,7 @@ func verifyRequests(t *testing.T, pkg *webpackager.Packager, want []string) {
 	for i, req := range reqs {
 		got[i] = req.URL.String()
 	}
-	if !reflect.DeepEqual(got, want) {
-		t.Errorf("[Received request URLs] = %q, want %q", got, want)
+	if diff := cmp.Diff(want, got); diff != "" {
+		t.Errorf("Received request URLs mismatch (-want +got):\n%s", diff)
 	}
 }

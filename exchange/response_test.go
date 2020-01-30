@@ -19,9 +19,9 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"reflect"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/google/webpackager/exchange"
 	"github.com/google/webpackager/exchange/exchangetest"
 	"github.com/google/webpackager/internal/urlutil"
@@ -114,8 +114,8 @@ func TestAddPreload(t *testing.T) {
 			if got := resp.AddPreload(test.item); got != test.added {
 				t.Errorf("got %v, want %v", got, test.added)
 			}
-			if !reflect.DeepEqual(resp.Preloads, test.post) {
-				t.Errorf("got %v, want %v", resp.Preloads, test.post)
+			if diff := cmp.Diff(test.post, resp.Preloads); diff != "" {
+				t.Errorf("resp.Preloads mismatch (-want +got):\n%s", diff)
 			}
 		})
 	}
@@ -160,7 +160,7 @@ func TestGetFullHeader_PreserveLinkHeader(t *testing.T) {
 	_ = resp.GetFullHeader()
 
 	want := []string{"<style.css>; rel=stylesheet"}
-	if got := resp.Header["Link"]; !reflect.DeepEqual(got, want) {
-		t.Errorf(`resp.Header["Link"] = %q, want %q`, got, want)
+	if diff := cmp.Diff(want, resp.Header["Link"]); diff != "" {
+		t.Errorf("resp.Header[\"Link\"] mismatch (-want +got):\n%s", diff)
 	}
 }

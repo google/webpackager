@@ -15,9 +15,9 @@
 package htmltask_test
 
 import (
-	"reflect"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/google/webpackager/exchange"
 	"github.com/google/webpackager/processor/htmlproc/htmltask"
 )
@@ -108,8 +108,8 @@ func TestExtractSubContentTypes(t *testing.T) {
 			if err := task.Run(resp); err != nil {
 				t.Fatalf("got error(%q), want success", err)
 			}
-			if got := resp.ExtraData[exchange.SubContentType]; !reflect.DeepEqual(got, test.want) {
-				t.Errorf("got = %#q, want %#q", got, test.want)
+			if diff := cmp.Diff(test.want, resp.ExtraData[exchange.SubContentType]); diff != "" {
+				t.Errorf("resp.ExtraData[exchange.SubContentType] mismatch (-want +got):\n%s", diff)
 			}
 		})
 	}

@@ -17,9 +17,9 @@ package commonproc_test
 import (
 	"fmt"
 	"net/http"
-	"reflect"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/google/webpackager/exchange/exchangetest"
 	"github.com/google/webpackager/processor/commonproc"
 )
@@ -187,11 +187,11 @@ func TestExtractPreloadHeaders(t *testing.T) {
 			for i, p := range resp.Preloads {
 				gotPreloads[i] = p.Header()
 			}
-			if !reflect.DeepEqual(gotPreloads, test.wantPreloads) {
-				t.Errorf("resp.Preloads = %#q, want %#q", gotPreloads, test.wantPreloads)
+			if diff := cmp.Diff(test.wantPreloads, gotPreloads); diff != "" {
+				t.Errorf("resp.Preloads mismatch (-want +got):\n%s", diff)
 			}
-			if !reflect.DeepEqual(resp.Header, test.wantHeader) {
-				t.Errorf("resp.Header = %#v, want %#v", resp.Header, test.wantHeader)
+			if diff := cmp.Diff(test.wantHeader, resp.Header); diff != "" {
+				t.Errorf("resp.Header mismatch (-want +got):\n%s", diff)
 			}
 		})
 	}

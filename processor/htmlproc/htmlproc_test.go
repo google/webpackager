@@ -17,9 +17,9 @@ package htmlproc_test
 import (
 	"errors"
 	"fmt"
-	"reflect"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/google/webpackager/exchange"
 	"github.com/google/webpackager/exchange/exchangetest"
 	"github.com/google/webpackager/processor/htmlproc"
@@ -90,9 +90,8 @@ func TestHTMLProcessor_Presets(t *testing.T) {
 			for i, p := range resp.Preloads {
 				got[i] = p.Header()
 			}
-			want := []string{}
-			if !reflect.DeepEqual(got, test.want) {
-				t.Errorf("resp.Preloads = %#q, want %#q", got, want)
+			if diff := cmp.Diff(test.want, got); diff != "" {
+				t.Errorf("resp.Preloads mismatch (-want +got):\n%s", diff)
 			}
 		})
 	}
