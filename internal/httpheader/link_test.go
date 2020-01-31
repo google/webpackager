@@ -15,9 +15,9 @@
 package httpheader_test
 
 import (
-	"reflect"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/google/webpackager/internal/httpheader"
 	"github.com/google/webpackager/internal/urlutil"
 )
@@ -119,8 +119,8 @@ func TestParseLink(t *testing.T) {
 			if err != nil {
 				t.Fatalf("got error(%q), want success", err)
 			}
-			if !reflect.DeepEqual(got, test.want) {
-				t.Errorf("got %#v, want %#v", got, test.want)
+			if diff := cmp.Diff(test.want, got); diff != "" {
+				t.Errorf("ParseLink(%q) mismatch (-want +got):\n%s", test.arg, diff)
 			}
 		})
 	}

@@ -19,9 +19,9 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
-	"reflect"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/google/webpackager/fetch/fetchtest"
 )
 
@@ -51,9 +51,9 @@ func TestFetchClient(t *testing.T) {
 	}
 
 	t.Run("Requests", func(t *testing.T) {
-		want := []*http.Request{req}
-		if got := client.Requests(); !reflect.DeepEqual(got, want) {
-			t.Fatalf("client.Requests() = %v, want %v", got, want)
+		eqPointer := cmp.Comparer(func(x, y *http.Request) bool { return x == y })
+		if diff := cmp.Diff([]*http.Request{req}, client.Requests(), eqPointer); diff != "" {
+			t.Errorf("client.Requests() mismatch (-want +got):\n%s", diff)
 		}
 	})
 	t.Run("Response", func(t *testing.T) {

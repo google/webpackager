@@ -15,9 +15,9 @@
 package htmltask_test
 
 import (
-	"reflect"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/google/webpackager/processor/htmlproc/htmltask"
 )
 
@@ -110,8 +110,8 @@ func TestPreloadStylesheets(t *testing.T) {
 			if err := htmltask.PreloadStylesheets().Run(resp); err != nil {
 				t.Fatalf("got error(%q), want success", err)
 			}
-			if got := preloadHeaders(resp); !reflect.DeepEqual(got, test.want) {
-				t.Errorf("resp.Preloads = %#q, want %#q", got, test.want)
+			if diff := cmp.Diff(test.want, preloadHeaders(resp)); diff != "" {
+				t.Errorf("resp.Preloads mismatch (-want +got):\n%s", diff)
 			}
 		})
 	}

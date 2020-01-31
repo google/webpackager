@@ -15,9 +15,9 @@
 package processor_test
 
 import (
-	"reflect"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/google/webpackager/exchange/exchangetest"
 	"github.com/google/webpackager/processor"
 )
@@ -81,8 +81,8 @@ func TestMultiplexedProcessor(t *testing.T) {
 			if err := mp.Process(resp); err != nil {
 				t.Errorf("got error(%q), want success", err)
 			}
-			if got := resp.Header["X-Testing"]; !reflect.DeepEqual(got, test.want) {
-				t.Errorf("got %q, want %q", got, test.want)
+			if diff := cmp.Diff(test.want, resp.Header["X-Testing"]); diff != "" {
+				t.Errorf("resp.Header[\"X-Testing\"] mismatch (-want +got):\n%s", diff)
 			}
 		})
 	}

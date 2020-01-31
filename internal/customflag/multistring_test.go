@@ -16,9 +16,9 @@ package customflag_test
 
 import (
 	"flag"
-	"reflect"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/google/webpackager/internal/customflag"
 )
 
@@ -33,13 +33,10 @@ func TestMultiString(t *testing.T) {
 		"--foo=a", "--bar=b", "--foo=c", "--foo=d", "--bar=e",
 	})
 
-	wantFoo := []string{"a", "c", "d"}
-	wantBar := []string{"b", "e"}
-
-	if !reflect.DeepEqual(foo, wantFoo) {
-		t.Errorf("*foo = %q, want %q", foo, wantFoo)
+	if diff := cmp.Diff([]string{"a", "c", "d"}, foo); diff != "" {
+		t.Errorf("foo mismatch (-want +got):\n%s", diff)
 	}
-	if !reflect.DeepEqual(bar, wantBar) {
-		t.Errorf("*bar = %q, want %q", bar, wantBar)
+	if diff := cmp.Diff([]string{"b", "e"}, bar); diff != "" {
+		t.Errorf("bar mismatch (-want +got):\n%s", diff)
 	}
 }

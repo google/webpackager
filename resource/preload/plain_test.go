@@ -15,9 +15,9 @@
 package preload_test
 
 import (
-	"reflect"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/google/webpackager/internal/urlutil"
 	"github.com/google/webpackager/resource"
 	"github.com/google/webpackager/resource/preload"
@@ -32,9 +32,8 @@ func TestNewPlainPreload(t *testing.T) {
 	p := preload.NewPlainPreload(r, preload.AsStyle)
 
 	t.Run("Resources", func(t *testing.T) {
-		want := []*resource.Resource{r}
-		if got := p.Resources(); !reflect.DeepEqual(got, want) {
-			t.Errorf("p.Resources() = %q, want %q", got, want)
+		if diff := cmp.Diff([]*resource.Resource{r}, p.Resources()); diff != "" {
+			t.Errorf("p.Resources() mismatch (-want +got):\n%s", diff)
 		}
 	})
 	t.Run("Header", func(t *testing.T) {
@@ -57,9 +56,8 @@ func TestCompletePlainPreload(t *testing.T) {
 	}
 
 	t.Run("Resources", func(t *testing.T) {
-		want := []*resource.Resource{r}
-		if got := p.Resources(); !reflect.DeepEqual(got, want) {
-			t.Errorf("p.Resources() = %q, want %q", got, want)
+		if diff := cmp.Diff([]*resource.Resource{r}, p.Resources()); diff != "" {
+			t.Errorf("p.Resources() mismatch (-want +got):\n%s", diff)
 		}
 	})
 	t.Run("Header", func(t *testing.T) {

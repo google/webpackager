@@ -17,9 +17,9 @@ package fetch_test
 import (
 	"errors"
 	"net/http"
-	"reflect"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/google/webpackager/fetch"
 )
 
@@ -85,8 +85,8 @@ func TestRequestTweakerSequence(t *testing.T) {
 		if err := test.tweaker.Tweak(req, parent); err != test.err {
 			t.Errorf("got %v, want %v", err, test.err)
 		}
-		if !reflect.DeepEqual(req.Header, test.want) {
-			t.Errorf("req.Header = %q, want %q", req.Header, test.want)
+		if diff := cmp.Diff(test.want, req.Header); diff != "" {
+			t.Errorf("req.Header mismatch (-want +got):\n%s", diff)
 		}
 	}
 }
@@ -220,8 +220,8 @@ func TestCopyParentHeaders(t *testing.T) {
 			if err := test.tweaker.Tweak(req, par); err != nil {
 				t.Fatal(err)
 			}
-			if !reflect.DeepEqual(req.Header, test.after) {
-				t.Errorf("req.Header = %q, want %q", req.Header, test.after)
+			if diff := cmp.Diff(test.after, req.Header); diff != "" {
+				t.Errorf("req.Header mismatch (-want +got):\n%s", diff)
 			}
 		})
 	}
@@ -289,8 +289,8 @@ func TestSetCustomHeaders(t *testing.T) {
 			if err := test.tweaker.Tweak(req, nil); err != nil {
 				t.Fatal(err)
 			}
-			if !reflect.DeepEqual(req.Header, test.after) {
-				t.Errorf("req.Header = %q, want %q", req.Header, test.after)
+			if diff := cmp.Diff(test.after, req.Header); diff != "" {
+				t.Errorf("req.Header mismatch (-want +got):\n%s", diff)
 			}
 		})
 	}

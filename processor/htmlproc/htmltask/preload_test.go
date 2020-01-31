@@ -15,9 +15,9 @@
 package htmltask_test
 
 import (
-	"reflect"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/google/webpackager/processor/htmlproc/htmltask"
 )
 
@@ -93,8 +93,8 @@ func TestExtractPreloadTags(t *testing.T) {
 			for i, p := range resp.Preloads {
 				got[i] = p.Header()
 			}
-			if !reflect.DeepEqual(got, test.want) {
-				t.Errorf("resp.Preloads = %#q, want %#q", got, test.want)
+			if diff := cmp.Diff(test.want, got); diff != "" {
+				t.Errorf("resp.Preloads mismatch (-want +got):\n%s", diff)
 			}
 		})
 	}

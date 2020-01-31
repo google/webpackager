@@ -17,9 +17,9 @@ package commonproc_test
 import (
 	"fmt"
 	"net/http"
-	"reflect"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/google/webpackager/exchange/exchangetest"
 	"github.com/google/webpackager/processor/commonproc"
 )
@@ -49,7 +49,7 @@ func TestRemoveUncachedHeaders(t *testing.T) {
 		"Content-Type":   []string{"text/html;charset=utf-8"},
 	}
 
-	if !reflect.DeepEqual(resp.Header, want) {
-		t.Errorf(`resp.Header = %q, want %q`, resp.Header, want)
+	if diff := cmp.Diff(want, resp.Header); diff != "" {
+		t.Errorf("resp.Header mismatch (-want +got):\n%s", diff)
 	}
 }
