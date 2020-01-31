@@ -31,15 +31,9 @@ import (
 	"github.com/google/webpackager/resource/preload"
 )
 
-func eraseSignature(sxg []byte) {
+func eraseSignature(sxg []byte) []byte {
 	re := regexp.MustCompile(`;sig=\*([A-Za-z0-9+/]*=*)\*`)
-	loc := re.FindSubmatchIndex(sxg)
-	if loc == nil {
-		return
-	}
-	for i := loc[2]; i < loc[3]; i++ {
-		sxg[i] = '*'
-	}
+	return re.ReplaceAll(sxg, []byte(";sig=*/erased/*"))
 }
 
 func TestFactory(t *testing.T) {
@@ -142,8 +136,8 @@ func TestFactory(t *testing.T) {
 				}
 				// Signatures change every time they are generated, so exclude.
 				// The signature is tested below with Verify().
-				eraseSignature(got)
-				eraseSignature(want)
+				got = eraseSignature(got)
+				want = eraseSignature(want)
 				if !bytes.Equal(got, want) {
 					t.Errorf("got %q (%d bytes), want %q (%d bytes)", got, len(got), want, len(want))
 				}
