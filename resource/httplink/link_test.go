@@ -26,7 +26,7 @@ func TestNewLink(t *testing.T) {
 	u := urlutil.MustParse("https://example.com/style.css")
 	rel := "preload"
 
-	want := &httplink.Link{u, httplink.LinkParams{"rel": rel}}
+	want := &httplink.Link{URL: u, Params: httplink.LinkParams{"rel": rel}}
 	got := httplink.NewLink(u, rel)
 	if diff := cmp.Diff(want, got); diff != "" {
 		t.Errorf("NewLink(%q, %q) mismatch (-want +got):\n%s", u, rel, diff)
