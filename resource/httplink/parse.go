@@ -12,89 +12,72 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package httpheader
+package httplink
 
 import (
 	"fmt"
 	"net/url"
 	"regexp"
 	"strings"
-)
 
-// BUG(yuizumi): Link and ParseLink in this package has been deprecated and
-// will be removed soon. Use the httplink package instead.
+	"golang.org/x/xerrors"
+)
 
 const (
 	// https://tools.ietf.org/html/rfc7230#section-3.2.6
 	token  = "[!#$%&'*+\\-.^_`|~0-9A-Za-z]+"
 	quoted = `"(?:[^"\\]|\\.)*"`
-
 	// https://tools.ietf.org/html/rfc8288#section-3
 	linkParam = token + `\s*(?:=\s*(?:` + token + `|` + quoted + `))?`
 	linkValue = `<([^<>]*)>(?:\s*;\s*` + linkParam + `)*`
 )
 
 var (
+	// reValue matches a single "link-value" [RFC 8288].
 	reValue = regexp.MustCompile(`^\s*(` + linkValue + `)\s*(?:,|$)`)
+	// reParam matches a single "link-param" [RFC 8288].
 	reParam = regexp.MustCompile(`;\s*(` + linkParam + `)`)
 )
 
-// Link represents a parsed Link HTTP header.
-type Link struct {
-	// URL represents the link target. It can be relative.
-	URL *url.URL
-
-	// Params represents the parameters. The keys are lowercased.
-	Params map[string]string
-
-	// Header represents the raw header string. It does not contain comma
-	// separators. Note it can still contain commas in quoted strings.
-	Header string
-}
-
-// ParseLink parses a Link header value.
-func ParseLink(value string) ([]*Link, error) {
-	links := []*Link{}
-
-	for rest := value; len(rest) > 0; {
-		m := reValue.FindStringSubmatch(rest)
+// Parse parses the Link HTTP header value. It returns a slice since the
+// value may contain multiple links, separated by comma.
+func Parse(header string) ([]*Link, error) {
+	var links []*Link
+	s := header
+	for len(s) > 0 {
+		m := reValue.FindStringSubmatch(s)
 		if m == nil {
-			return nil, fmt.Errorf("malforemd Link header: %s", value)
+			return nil, fmt.Errorf("malformed Link header: %q", header)
 		}
-		rest = rest[len(m[0]):]
+		s = s[len(m[0]):]
 
-		linkValue := m[1]
-		rawurl := m[2]
+		rawLink := m[1]
+		rawURL := m[2]
 
-		u, err := url.Parse(rawurl)
+		u, err := url.Parse(rawURL)
 		if err != nil {
-			return nil, fmt.Errorf("malformed Link URL: %v", err)
+			return nil, xerrors.Errorf("invalid Link URL: %w", err)
 		}
 
-		params := make(map[string]string)
+		params := make(LinkParams)
 
-		for _, m := range reParam.FindAllStringSubmatch(linkValue, -1) {
+		for _, m := range reParam.FindAllStringSubmatch(rawLink, -1) {
 			kv := strings.SplitN(m[1], "=", 2)
 
 			key := strings.ToLower(strings.TrimSpace(kv[0]))
 			if len(kv) < 2 {
-				params[key] = ""
+				params.Set(key, "")
 			} else {
 				val := strings.TrimSpace(kv[1])
 				if strings.HasPrefix(val, "\"") {
 					val = strings.Replace(val[1:len(val)-1], "\\", "", -1)
 				}
-				params[key] = val
+				params.Set(key, val)
 			}
 		}
-		links = append(links, &Link{u, params, linkValue})
+
+		links = append(links, &Link{u, params})
 	}
 
 	return links, nil
-}
-
-// GoString implements the GoStringer interface.
-func (link *Link) GoString() string {
-	return fmt.Sprintf("&httpheader.Link{URL:&%#v, Params:%#v, Header:%#q}",
-		*link.URL, link.Params, link.Header)
 }
