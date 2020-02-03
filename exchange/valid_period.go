@@ -31,7 +31,7 @@ func NewValidPeriod(date, expires time.Time) ValidPeriod {
 	return ValidPeriod{date, expires}
 }
 
-// NewValidPeriodWithDuration creates and initializes a new ValidPeriod from
+// NewValidPeriodWithLifetime creates and initializes a new ValidPeriod from
 // the date parameter and the lifetime.
 func NewValidPeriodWithLifetime(date time.Time, lifetime time.Duration) ValidPeriod {
 	return ValidPeriod{date, date.Add(lifetime)}

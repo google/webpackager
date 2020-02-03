@@ -31,13 +31,14 @@ type Config struct {
 	// the current best practice.
 	GoodStatusCodes []int
 
-	// MaxContentLength
+	// MaxContentLength specifies the maximum size of each resource turned
+	// into a signed exchange, in bytes.
 	//
-	// Zero implies DefaultMaxContentLength, and a negative number implies
-	// "unlimited."
+	// Zero implies DefaultMaxContentLength; a negative implies "unlimited."
 	MaxContentLength int
 }
 
+// The default value(s) used by Config.
 const (
 	DefaultMaxContentLength = 4194304 // 4 MiB
 )

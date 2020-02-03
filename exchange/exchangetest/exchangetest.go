@@ -47,7 +47,7 @@ func MakeResponse(url, respText string) *exchange.Response {
 	return resp
 }
 
-// MakeEmptyRespnose returns a new exchange.Response with a new GET request to
+// MakeEmptyResponse returns a new exchange.Response with a new GET request to
 // url and an empty response with the status code 200 (OK).
 //
 // MakeEmptyResponse panics on error for ease of use in testing.
