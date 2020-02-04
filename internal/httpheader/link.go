@@ -21,6 +21,9 @@ import (
 	"strings"
 )
 
+// BUG(yuizumi): Link and ParseLink in this package has been deprecated and
+// will be removed soon. Use the httplink package instead.
+
 const (
 	// https://tools.ietf.org/html/rfc7230#section-3.2.6
 	token  = "[!#$%&'*+\\-.^_`|~0-9A-Za-z]+"
