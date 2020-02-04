@@ -19,6 +19,8 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"net/url"
 	"os"
 	"strings"
@@ -66,16 +68,19 @@ func getURLStringList() ([]string, error) {
 	if len(*flagURL) != 0 {
 		return nil, errors.New("--url and --url_file may not be used together")
 	}
-	if *flagURLFile == "-" {
-		return readLines(bufio.NewScanner(os.Stdin))
-	} else {
-		f, err := os.Open(*flagURLFile)
-		if err != nil {
-			return nil, err
-		}
-		defer f.Close()
-		return readLines(bufio.NewScanner(f))
+	f, err := openFile(*flagURLFile)
+	if err != nil {
+		return nil, err
 	}
+	defer f.Close()
+	return readLines(bufio.NewScanner(f))
+}
+
+func openFile(filename string) (io.ReadCloser, error) {
+	if filename == "-" {
+		return ioutil.NopCloser(os.Stdin), nil
+	}
+	return os.Open(filename)
 }
 
 func removeComment(s string) string {
