@@ -28,8 +28,9 @@ const (
 	token  = "[!#$%&'*+\\-.^_`|~0-9A-Za-z]+"
 	quoted = `"(?:[^"\\]|\\.)*"`
 	// https://tools.ietf.org/html/rfc8288#section-3
+	uri       = `[^<>]*` // Parsed by url.Parse.
 	linkParam = token + `\s*(?:=\s*(?:` + token + `|` + quoted + `))?`
-	linkValue = `<([^<>]*)>(?:\s*;\s*` + linkParam + `)*`
+	linkValue = `<(` + uri + `)>(?:\s*;\s*` + linkParam + `)*`
 )
 
 var (
@@ -51,8 +52,8 @@ func Parse(header string) ([]*Link, error) {
 		}
 		s = s[len(m[0]):]
 
-		rawLink := m[1]
-		rawURL := m[2]
+		rawLink := m[1] // Captures linkValue.
+		rawURL := m[2]  // Captures uri.
 
 		u, err := url.Parse(rawURL)
 		if err != nil {
