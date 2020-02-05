@@ -163,7 +163,9 @@ func TestFindNode(t *testing.T) {
 			node := htmldoc.FindNode(doc, test.tag)
 			var got strings.Builder
 			if node != nil {
-				html.Render(&got, node)
+				if err := html.Render(&got, node); err != nil {
+					t.Fatal(err)
+				}
 			}
 			if got.String() != test.want {
 				t.Errorf("got %q, want %q", got.String(), test.want)

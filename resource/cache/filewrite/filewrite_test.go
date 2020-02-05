@@ -50,7 +50,9 @@ func TestStore(t *testing.T) {
 	}
 
 	r := resource.NewResource(req.URL)
-	r.SetExchange(sxg)
+	if err = r.SetExchange(sxg); err != nil {
+		t.Fatal(err)
+	}
 
 	t.Run("WriteToFile", func(t *testing.T) {
 		tempFile := filepath.Join(tempDir, "standalone.sxg")

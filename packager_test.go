@@ -75,7 +75,9 @@ func TestSameDomain(t *testing.T) {
 	defer server.Close()
 
 	pkg := webpackager.NewPackager(makeConfig(server))
-	pkg.Run(urlutil.MustParse("https://example.org/hello.html"), date)
+	if err := pkg.Run(urlutil.MustParse("https://example.org/hello.html"), date); err != nil {
+		t.Fatalf("pkg.Run() = error(%q), want success", err)
+	}
 
 	// style.css is on the same domain thus fetched.
 	verifyRequests(t, pkg, []string{
@@ -106,7 +108,9 @@ func TestCrossDomain(t *testing.T) {
 	defer server.Close()
 
 	pkg := webpackager.NewPackager(makeConfig(server))
-	pkg.Run(urlutil.MustParse("https://example.org/hello.html"), date)
+	if err := pkg.Run(urlutil.MustParse("https://example.org/hello.html"), date); err != nil {
+		t.Fatalf("pkg.Run() = error(%q), want success", err)
+	}
 
 	// style.css is on a cross origin and not fetched: DefaultProcessor
 	// includes RequireSameOrigin.
@@ -137,8 +141,12 @@ func TestDupResource(t *testing.T) {
 	defer server.Close()
 
 	pkg := webpackager.NewPackager(makeConfig(server))
-	pkg.Run(urlutil.MustParse("https://example.org/hello.html"), date)
-	pkg.Run(urlutil.MustParse("https://example.org/quick.html"), date)
+	if err := pkg.Run(urlutil.MustParse("https://example.org/hello.html"), date); err != nil {
+		t.Fatalf("pkg.Run() = error(%q), want success", err)
+	}
+	if err := pkg.Run(urlutil.MustParse("https://example.org/quick.html"), date); err != nil {
+		t.Fatalf("pkg.Run() = error(%q), want success", err)
+	}
 
 	// style.css should be fetched only once.
 	verifyRequests(t, pkg, []string{
@@ -179,7 +187,9 @@ func TestRequestTweaker(t *testing.T) {
 	config := makeConfig(server)
 	config.RequestTweaker = fetch.SetCustomHeaders(header)
 	pkg := webpackager.NewPackager(config)
-	pkg.Run(urlutil.MustParse("https://example.org/hello.html"), date)
+	if err := pkg.Run(urlutil.MustParse("https://example.org/hello.html"), date); err != nil {
+		t.Fatalf("pkg.Run() = error(%q), want success", err)
+	}
 
 	for _, req := range pkg.FetchClient.(*fetchtest.FetchClient).Requests() {
 		if got := req.Header.Get("User-Agent"); got != dummyUA {

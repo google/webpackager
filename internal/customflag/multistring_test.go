@@ -29,9 +29,10 @@ func TestMultiString(t *testing.T) {
 	var bar []string
 	fs.Var(customflag.NewMultiStringValue(&bar), "bar", "Test flag #2.")
 
-	fs.Parse([]string{
-		"--foo=a", "--bar=b", "--foo=c", "--foo=d", "--bar=e",
-	})
+	args := []string{"--foo=a", "--bar=b", "--foo=c", "--foo=d", "--bar=e"}
+	if err := fs.Parse(args); err != nil {
+		t.Fatal(err)
+	}
 
 	if diff := cmp.Diff([]string{"a", "c", "d"}, foo); diff != "" {
 		t.Errorf("foo mismatch (-want +got):\n%s", diff)
