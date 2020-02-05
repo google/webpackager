@@ -24,9 +24,8 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/webpackager/exchange"
 	"github.com/google/webpackager/exchange/exchangetest"
-	"github.com/google/webpackager/internal/urlutil"
-	"github.com/google/webpackager/resource"
 	"github.com/google/webpackager/resource/preload"
+	"github.com/google/webpackager/resource/preload/preloadtest"
 )
 
 func makeHTTPResponse(payload []byte) *http.Response {
@@ -35,11 +34,6 @@ func makeHTTPResponse(payload []byte) *http.Response {
 	rw.Write(payload)
 
 	return rw.Result()
-}
-
-func plain(rawurl, as string) preload.Preload {
-	r := resource.NewResource(urlutil.MustParse(rawurl))
-	return preload.NewPlainPreload(r, as)
 }
 
 func TestNewResponse(t *testing.T) {
@@ -62,46 +56,48 @@ func TestNewResponse(t *testing.T) {
 }
 
 func TestAddPreload(t *testing.T) {
+	pl := preloadtest.NewPreloadForRawURL
+
 	tests := []struct {
 		name  string
-		pre   []preload.Preload
-		item  preload.Preload
-		post  []preload.Preload
+		pre   []*preload.Preload
+		item  *preload.Preload
+		post  []*preload.Preload
 		added bool
 	}{
 		{
 			name: "Nonempty",
-			pre: []preload.Preload{
-				plain("https://example.org/foo.js", preload.AsScript),
-				plain("https://example.org/foo.css", preload.AsStyle),
+			pre: []*preload.Preload{
+				pl("https://example.org/foo.js", preload.AsScript),
+				pl("https://example.org/foo.css", preload.AsStyle),
 			},
-			item: plain("https://example.org/bar.css", preload.AsStyle),
-			post: []preload.Preload{
-				plain("https://example.org/foo.js", preload.AsScript),
-				plain("https://example.org/foo.css", preload.AsStyle),
-				plain("https://example.org/bar.css", preload.AsStyle),
+			item: pl("https://example.org/bar.css", preload.AsStyle),
+			post: []*preload.Preload{
+				pl("https://example.org/foo.js", preload.AsScript),
+				pl("https://example.org/foo.css", preload.AsStyle),
+				pl("https://example.org/bar.css", preload.AsStyle),
 			},
 			added: true,
 		},
 		{
 			name: "Empty",
 			pre:  nil,
-			item: plain("https://example.org/foo.css", preload.AsStyle),
-			post: []preload.Preload{
-				plain("https://example.org/foo.css", preload.AsStyle),
+			item: pl("https://example.org/foo.css", preload.AsStyle),
+			post: []*preload.Preload{
+				pl("https://example.org/foo.css", preload.AsStyle),
 			},
 			added: true,
 		},
 		{
 			name: "Duplicate",
-			pre: []preload.Preload{
-				plain("https://example.org/foo.js", preload.AsScript),
-				plain("https://example.org/foo.css", preload.AsStyle),
+			pre: []*preload.Preload{
+				pl("https://example.org/foo.js", preload.AsScript),
+				pl("https://example.org/foo.css", preload.AsStyle),
 			},
-			item: plain("https://example.org/foo.css", preload.AsStyle),
-			post: []preload.Preload{
-				plain("https://example.org/foo.js", preload.AsScript),
-				plain("https://example.org/foo.css", preload.AsStyle),
+			item: pl("https://example.org/foo.css", preload.AsStyle),
+			post: []*preload.Preload{
+				pl("https://example.org/foo.js", preload.AsScript),
+				pl("https://example.org/foo.css", preload.AsStyle),
 			},
 			added: false,
 		},
@@ -133,8 +129,8 @@ func TestGetFullHeader_PreserveNoLinkHeader(t *testing.T) {
 			`<p>Hello, world!</p>`,
 		),
 	)
-	resp.AddPreload(
-		plain("https://example.org/style.css", preload.AsStyle))
+	p := preloadtest.NewPreloadForRawURL("https://example.org/style.css", preload.AsStyle)
+	resp.AddPreload(p)
 
 	_ = resp.GetFullHeader()
 
@@ -154,8 +150,8 @@ func TestGetFullHeader_PreserveLinkHeader(t *testing.T) {
 			`<!doctype html><p>Hello, world!</p>`,
 		),
 	)
-	resp.AddPreload(
-		plain("https://example.org/style.css", preload.AsStyle))
+	p := preloadtest.NewPreloadForRawURL("https://example.org/style.css", preload.AsStyle)
+	resp.AddPreload(p)
 
 	_ = resp.GetFullHeader()
 

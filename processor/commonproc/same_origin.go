@@ -15,12 +15,9 @@
 package commonproc
 
 import (
-	"net/url"
-
 	"github.com/google/webpackager/exchange"
 	"github.com/google/webpackager/internal/urlutil"
 	"github.com/google/webpackager/processor"
-	"github.com/google/webpackager/resource/preload"
 )
 
 // ApplySameOriginPolicy erases the preload links that may load cross-doamin
@@ -33,7 +30,7 @@ func (*applySameOriginPolicy) Process(resp *exchange.Response) error {
 	i := 0
 
 	for _, p := range resp.Preloads {
-		if hasSameOrigin(p, resp.Request.URL) {
+		if urlutil.HasSameOrigin(p.URL, resp.Request.URL) {
 			resp.Preloads[i] = p
 			i++
 		}
@@ -41,13 +38,4 @@ func (*applySameOriginPolicy) Process(resp *exchange.Response) error {
 	resp.Preloads = resp.Preloads[:i]
 
 	return nil
-}
-
-func hasSameOrigin(p preload.Preload, referrer *url.URL) bool {
-	for _, r := range p.Resources() {
-		if !urlutil.HasSameOrigin(r.RequestURL, referrer) {
-			return false
-		}
-	}
-	return true
 }

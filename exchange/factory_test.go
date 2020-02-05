@@ -54,7 +54,7 @@ func TestFactory(t *testing.T) {
 		url      string
 		respHead string
 		htmlFile string
-		preloads []preload.Preload
+		preloads []*preload.Preload
 		validity string
 		sxgFile  string
 	}{
@@ -78,8 +78,8 @@ func TestFactory(t *testing.T) {
 				"Content-Length: 78\r\n" +
 				"Content-Type: text/html;charset=utf-8\r\n",
 			htmlFile: "../testdata/sxg/preloading.html",
-			preloads: []preload.Preload{
-				preload.NewPlainPreload(
+			preloads: []*preload.Preload{
+				preload.NewPreloadForResource(
 					&resource.Resource{
 						RequestURL: urlutil.MustParse("https://example.org/style.css"),
 						Integrity:  "dummy-integrity",
@@ -98,8 +98,8 @@ func TestFactory(t *testing.T) {
 				"Content-Length: 78\r\n" +
 				"Content-Type: text/html;charset=utf-8\r\n",
 			htmlFile: "../testdata/sxg/incomplete.html",
-			preloads: []preload.Preload{
-				preload.NewPlainPreload(
+			preloads: []*preload.Preload{
+				preload.NewPreloadForResource(
 					&resource.Resource{
 						RequestURL: urlutil.MustParse("https://example.org/style.css"),
 						Integrity:  "", // Missing

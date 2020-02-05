@@ -18,7 +18,6 @@ import (
 	"strings"
 
 	"github.com/google/webpackager/processor/htmlproc/htmldoc"
-	"github.com/google/webpackager/resource"
 	"github.com/google/webpackager/resource/preload"
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
@@ -68,7 +67,7 @@ func (*preloadStylesheets) Run(resp *htmldoc.HTMLResponse) error {
 		if href == nil {
 			return nil
 		}
-		resp.AddPreload(preload.NewPlainPreload(resource.NewResource(href), preload.AsStyle))
+		resp.AddPreload(preload.NewPreloadForURL(href, preload.AsStyle))
 		return nil
 	})
 }

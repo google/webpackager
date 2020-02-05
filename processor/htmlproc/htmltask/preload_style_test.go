@@ -19,14 +19,18 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/webpackager/processor/htmlproc/htmltask"
+	"github.com/google/webpackager/resource/preload"
+	"github.com/google/webpackager/resource/preload/preloadtest"
 )
 
 func TestPreloadStylesheets(t *testing.T) {
+	pl := preloadtest.NewPreloadForRawLink
+
 	tests := []struct {
 		name string
 		url  string
 		html string
-		want []string
+		want []*preload.Preload
 	}{
 		{
 			name: "Simple",
@@ -36,9 +40,9 @@ func TestPreloadStylesheets(t *testing.T) {
 			         <link rel="stylesheet" href="https://example.com/hello/foo.css">
 			         <link rel="stylesheet" href="bar.css">
 			       </head>`,
-			want: []string{
-				`<https://example.com/hello/foo.css>;rel="preload";as="style"`,
-				`<https://example.com/hello/bar.css>;rel="preload";as="style"`,
+			want: []*preload.Preload{
+				pl(`<https://example.com/hello/foo.css>;rel="preload";as="style"`),
+				pl(`<https://example.com/hello/bar.css>;rel="preload";as="style"`),
 			},
 		},
 		{
@@ -50,9 +54,9 @@ func TestPreloadStylesheets(t *testing.T) {
 			         <link rel="stylesheet" href="https://example.com/hello/foo.css">
 			         <link rel="stylesheet" href="bar.css">
 			       </head>`,
-			want: []string{
-				`<https://example.com/hello/foo.css>;rel="preload";as="style"`,
-				`<https://example.com/world/bar.css>;rel="preload";as="style"`,
+			want: []*preload.Preload{
+				pl(`<https://example.com/hello/foo.css>;rel="preload";as="style"`),
+				pl(`<https://example.com/world/bar.css>;rel="preload";as="style"`),
 			},
 		},
 		{
@@ -64,8 +68,8 @@ func TestPreloadStylesheets(t *testing.T) {
 			         <link href="bar.css" title="bar" rel="stylesheet alternate">
 			         <link href="baz.css" title="baz" rel="stylesheet">
 			       </head>`,
-			want: []string{
-				`<https://example.com/hello/baz.css>;rel="preload";as="style"`,
+			want: []*preload.Preload{
+				pl(`<https://example.com/hello/baz.css>;rel="preload";as="style"`),
 			},
 		},
 		{
@@ -76,7 +80,7 @@ func TestPreloadStylesheets(t *testing.T) {
 			         <link rel="stylesheet" href="https://example.com/hello/foo.css">
 			         <link rel="stylesheet" href="bar.css">
 			       </body>`,
-			want: []string{},
+			want: nil,
 		},
 		{
 			name: "CrossOrigin",
@@ -85,8 +89,8 @@ func TestPreloadStylesheets(t *testing.T) {
 			       <head>
 			         <link rel="stylesheet" href="https://example.org/hello/foo.css">
 			       </head>`,
-			want: []string{
-				`<https://example.org/hello/foo.css>;rel="preload";as="style"`,
+			want: []*preload.Preload{
+				pl(`<https://example.org/hello/foo.css>;rel="preload";as="style"`),
 			},
 		},
 		{
@@ -97,9 +101,9 @@ func TestPreloadStylesheets(t *testing.T) {
 			       <!-- &#10; == LF ("\n") -->
 			       <link rel="stylesheet&#10;" href="bar.css">
 			       <link rel="stylesheet">`,
-			want: []string{
-				`<https://example.com/hello/foo.css>;rel="preload";as="style"`,
-				`<https://example.com/hello/bar.css>;rel="preload";as="style"`,
+			want: []*preload.Preload{
+				pl(`<https://example.com/hello/foo.css>;rel="preload";as="style"`),
+				pl(`<https://example.com/hello/bar.css>;rel="preload";as="style"`),
 			},
 		},
 	}
@@ -110,7 +114,7 @@ func TestPreloadStylesheets(t *testing.T) {
 			if err := htmltask.PreloadStylesheets().Run(resp); err != nil {
 				t.Fatalf("got error(%q), want success", err)
 			}
-			if diff := cmp.Diff(test.want, preloadHeaders(resp)); diff != "" {
+			if diff := cmp.Diff(test.want, resp.Preloads); diff != "" {
 				t.Errorf("resp.Preloads mismatch (-want +got):\n%s", diff)
 			}
 		})
