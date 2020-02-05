@@ -20,7 +20,6 @@ import (
 	"unicode"
 
 	"github.com/google/webpackager/processor/htmlproc/htmldoc"
-	"github.com/google/webpackager/resource"
 	"github.com/google/webpackager/resource/preload"
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
@@ -120,8 +119,7 @@ func handleScript(resp *htmldoc.HTMLResponse, n *html.Node) {
 		return
 	}
 	if u := resolveURLAttr(htmldoc.FindAttr(n, "src"), resp.Doc); u != nil {
-		resp.AddPreload(
-			preload.NewPlainPreload(resource.NewResource(u), preload.AsScript))
+		resp.AddPreload(preload.NewPreloadForURL(u, preload.AsScript))
 	}
 }
 

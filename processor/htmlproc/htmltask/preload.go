@@ -15,10 +15,8 @@
 package htmltask
 
 import (
-	"strings"
-
 	"github.com/google/webpackager/processor/htmlproc/htmldoc"
-	"github.com/google/webpackager/resource"
+	"github.com/google/webpackager/resource/httplink"
 	"github.com/google/webpackager/resource/preload"
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
@@ -32,41 +30,38 @@ func ExtractPreloadTags() HTMLTask {
 
 type extractPreloadTags struct{}
 
-func isPreload(n *html.Node) bool {
-	if n.Type != html.ElementNode {
-		return false
-	}
-	if n.DataAtom != atom.Link {
-		return false
-	}
-	rel := htmldoc.FindAttr(n, "rel")
-	if rel == nil {
-		return false
-	}
-	for _, r := range strings.Fields(rel.Val) {
-		if strings.EqualFold(r, "preload") {
-			return true
-		}
-	}
-	return false
-}
-
 func (*extractPreloadTags) Run(resp *htmldoc.HTMLResponse) error {
 	return htmldoc.Traverse(resp.Doc.Root, func(n *html.Node) error {
-		if !isPreload(n) {
+		if n.Type != html.ElementNode || n.DataAtom != atom.Link {
 			return nil
 		}
 		href := resolveURLAttr(htmldoc.FindAttr(n, "href"), resp.Doc)
 		if href == nil {
 			return nil
 		}
-		resp.AddPreload(&preload.PlainPreload{
-			Resource:    resource.NewResource(href),
-			As:          htmldoc.GetAttr(n, "as"),
-			CrossOrigin: (htmldoc.FindAttr(n, "crossorigin") != nil),
-			Media:       htmldoc.GetAttr(n, "media"),
-			Type:        htmldoc.GetAttr(n, "type"),
-		})
+
+		link := httplink.NewLink(href, "")
+
+		if a := htmldoc.FindAttr(n, "rel"); a != nil {
+			link.Params.Set(httplink.ParamRel, a.Val)
+		}
+		if a := htmldoc.FindAttr(n, "as"); a != nil {
+			link.Params.Set(httplink.ParamAs, a.Val)
+		}
+		if a := htmldoc.FindAttr(n, "crossorigin"); a != nil {
+			link.Params.Set(httplink.ParamCrossOrigin, a.Val)
+		}
+		if a := htmldoc.FindAttr(n, "media"); a != nil {
+			link.Params.Set(httplink.ParamMedia, a.Val)
+		}
+		if a := htmldoc.FindAttr(n, "type"); a != nil {
+			link.Params.Set(httplink.ParamType, a.Val)
+		}
+
+		if link.IsPreload() {
+			resp.AddPreload(preload.NewPreloadForLink(link))
+		}
+
 		return nil
 	})
 }

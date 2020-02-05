@@ -19,30 +19,26 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/webpackager/exchange/exchangetest"
-	"github.com/google/webpackager/internal/urlutil"
 	"github.com/google/webpackager/processor/commonproc"
-	"github.com/google/webpackager/resource"
 	"github.com/google/webpackager/resource/preload"
+	"github.com/google/webpackager/resource/preload/preloadtest"
 )
-
-func plain(rawurl, as string) preload.Preload {
-	r := resource.NewResource(urlutil.MustParse(rawurl))
-	return preload.NewPlainPreload(r, as)
-}
 
 func TestApplySameOriginPolicy(t *testing.T) {
 	resp := exchangetest.MakeEmptyResponse("https://example.org/")
 
-	resp.Preloads = []preload.Preload{
-		plain("https://example.org/assets/foo.css", preload.AsStyle),
-		plain("https://example.com/assets/bar.css", preload.AsStyle),
-		plain("https://example.org/assets/baz.css", preload.AsStyle),
-		plain("https://example.org/assets/qux.js", preload.AsScript),
+	pl := preloadtest.NewPreloadForRawURL
+
+	resp.Preloads = []*preload.Preload{
+		pl("https://example.org/assets/foo.css", preload.AsStyle),
+		pl("https://example.com/assets/bar.css", preload.AsStyle),
+		pl("https://example.org/assets/baz.css", preload.AsStyle),
+		pl("https://example.org/assets/qux.js", preload.AsScript),
 	}
-	want := []preload.Preload{
-		plain("https://example.org/assets/foo.css", preload.AsStyle),
-		plain("https://example.org/assets/baz.css", preload.AsStyle),
-		plain("https://example.org/assets/qux.js", preload.AsScript),
+	want := []*preload.Preload{
+		pl("https://example.org/assets/foo.css", preload.AsStyle),
+		pl("https://example.org/assets/baz.css", preload.AsStyle),
+		pl("https://example.org/assets/qux.js", preload.AsScript),
 	}
 
 	if err := commonproc.ApplySameOriginPolicy.Process(resp); err != nil {

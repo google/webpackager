@@ -44,7 +44,7 @@ type Response struct {
 	Payload []byte
 
 	// Preloads represents preload links to add to HTTP headers.
-	Preloads []preload.Preload
+	Preloads []*preload.Preload
 
 	// ExtraData contains information extracted from this Response and
 	// used inside the program. Processors extract information and append
@@ -70,10 +70,10 @@ func NewResponse(resp *http.Response) (*Response, error) {
 
 // AddPreload adds p to resp.Preloads if p is not already in resp.Preloads,
 // and reports whether p was added. It considers Preloads to be equal when
-// Header returns an identical string.
-func (resp *Response) AddPreload(p preload.Preload) bool {
+// their Links are equal.
+func (resp *Response) AddPreload(p *preload.Preload) bool {
 	for _, q := range resp.Preloads {
-		if p.Header() == q.Header() {
+		if p.Link.Equal(q.Link) {
 			return false
 		}
 	}
@@ -93,12 +93,12 @@ func (resp *Response) GetFullHeader() http.Header {
 	}
 
 	for _, p := range resp.Preloads {
-		for _, r := range p.Resources() {
+		for _, r := range p.Resources {
 			if r.Integrity != "" {
 				header.Add(linkHeader, r.AllowedAltSXGHeader())
 			}
 		}
-		header.Add(linkHeader, p.Header())
+		header.Add(linkHeader, p.Link.String())
 	}
 
 	return header

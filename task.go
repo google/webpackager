@@ -177,7 +177,7 @@ func (task *packagerTask) createExchange(rawResp *http.Response) (*signedexchang
 	task.resource.ValidityURL = vu
 
 	for _, p := range sxgResp.Preloads {
-		for _, r := range p.Resources() {
+		for _, r := range p.Resources {
 			req, err := newGetRequest(r.RequestURL)
 			if err != nil {
 				return nil, err

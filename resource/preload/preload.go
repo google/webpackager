@@ -16,7 +16,10 @@
 package preload
 
 import (
+	"net/url"
+
 	"github.com/google/webpackager/resource"
+	"github.com/google/webpackager/resource/httplink"
 )
 
 // Values for the "as" attribute of preload links.
@@ -36,13 +39,50 @@ const (
 )
 
 // Preload represents a preload link.
-type Preload interface {
-	// Header returns the value of Link HTTP header to perform the preload.
-	Header() string
+type Preload struct {
+	*httplink.Link
 
-	// Resources returns a set of resources referenced by the preload link.
-	// It returns multiple resources when the preload offers more than one
-	// option, such as images with multi-source ("imagesrcset") or content
-	// negotiations ("variants").
-	Resources() []*resource.Resource
+	// Resources contains a set of resources referenced by the preload link.
+	// It typically consists just of one resource, but contains multiple
+	// resources when the preload offers more than one option, such as images
+	// with multi-source ("imagesrcset") or content negotiations ("variants").
+	Resources []*resource.Resource
+}
+
+// NewPreloadForURL creates and initializes a new Preload to preload u.
+// The new Preload is populated with a new single Resource requesting to u.
+// Note it implies u should be absolute.
+//
+// as specifies the "as" parameter value. If it is empty, the parameter is
+// kept unset.
+func NewPreloadForURL(u *url.URL, as string) *Preload {
+	link := httplink.NewLink(u, httplink.RelPreload)
+	if as != "" {
+		link.Params.Set(httplink.ParamAs, as)
+	}
+	return &Preload{link, []*resource.Resource{resource.NewResource(u)}}
+}
+
+// NewPreloadForLink creates and initializes a new Preload to perform
+// the preloading as specified by link. The new Preload is populated with
+// a new single Resource requesting to link.URL. Note it implies link.URL
+// should be absolute.
+//
+// NewPreloadForLink assumes link.IsPreload() to be true.
+func NewPreloadForLink(link *httplink.Link) *Preload {
+	r := resource.NewResource(link.URL)
+	return &Preload{link, []*resource.Resource{r}}
+}
+
+// NewPreloadForResource creates and initializes a new Preload to preload
+// a single Resource.
+//
+// as specifies the "as" parameter value. If it is empty, the parameter is
+// kept unset.
+func NewPreloadForResource(r *resource.Resource, as string) *Preload {
+	link := httplink.NewLink(r.RequestURL, httplink.RelPreload)
+	if as != "" {
+		link.Params.Set(httplink.ParamAs, as)
+	}
+	return &Preload{link, []*resource.Resource{r}}
 }

@@ -21,14 +21,6 @@ import (
 	"github.com/google/webpackager/processor/htmlproc/htmldoc"
 )
 
-func preloadHeaders(resp *htmldoc.HTMLResponse) []string {
-	headers := make([]string, len(resp.Preloads))
-	for i, p := range resp.Preloads {
-		headers[i] = p.Header()
-	}
-	return headers
-}
-
 // makeHTMLResponse returns a new htmldoc.HTMLResponse with a new GET request.
 // html is an HTML document (payload). makeHTMLResponse adds a reasonable set
 // of HTTP headers automatically.

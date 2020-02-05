@@ -25,6 +25,8 @@ import (
 	"github.com/google/webpackager/processor/htmlproc"
 	"github.com/google/webpackager/processor/htmlproc/htmldoc"
 	"github.com/google/webpackager/processor/htmlproc/htmltask"
+	"github.com/google/webpackager/resource/preload"
+	"github.com/google/webpackager/resource/preload/preloadtest"
 )
 
 func makeResponse(url, html string) *exchange.Response {
@@ -39,11 +41,13 @@ func makeResponse(url, html string) *exchange.Response {
 }
 
 func TestHTMLProcessor_Presets(t *testing.T) {
+	pl := preloadtest.NewPreloadForRawLink
+
 	tests := []struct {
 		name  string
 		html  string
 		tasks []htmltask.HTMLTask
-		want  []string
+		want  []*preload.Preload
 	}{
 		{
 			name: "ConservativeTaskSet",
@@ -54,8 +58,8 @@ func TestHTMLProcessor_Presets(t *testing.T) {
 				`<script src="script.js"></script>`,
 			),
 			tasks: htmltask.ConservativeTaskSet,
-			want: []string{
-				`<https://example.com/icons.svg>;rel="preload";as="image"`,
+			want: []*preload.Preload{
+				pl(`<https://example.com/icons.svg>;rel="preload";as="image"`),
 			},
 		},
 		{
@@ -67,10 +71,10 @@ func TestHTMLProcessor_Presets(t *testing.T) {
 				`<script src="script.js"></script>`,
 			),
 			tasks: htmltask.AggressiveTaskSet,
-			want: []string{
-				`<https://example.com/icons.svg>;rel="preload";as="image"`,
-				`<https://example.com/style.css>;rel="preload";as="style"`,
-				`<https://example.com/script.js>;rel="preload";as="script"`,
+			want: []*preload.Preload{
+				pl(`<https://example.com/icons.svg>;rel="preload";as="image"`),
+				pl(`<https://example.com/style.css>;rel="preload";as="style"`),
+				pl(`<https://example.com/script.js>;rel="preload";as="script"`),
 			},
 		},
 	}
@@ -86,11 +90,7 @@ func TestHTMLProcessor_Presets(t *testing.T) {
 				t.Errorf("got error(%v), want success", err)
 			}
 
-			got := make([]string, len(resp.Preloads))
-			for i, p := range resp.Preloads {
-				got[i] = p.Header()
-			}
-			if diff := cmp.Diff(test.want, got); diff != "" {
+			if diff := cmp.Diff(test.want, resp.Preloads); diff != "" {
 				t.Errorf("resp.Preloads mismatch (-want +got):\n%s", diff)
 			}
 		})

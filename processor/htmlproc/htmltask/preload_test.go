@@ -19,14 +19,18 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/webpackager/processor/htmlproc/htmltask"
+	"github.com/google/webpackager/resource/preload"
+	"github.com/google/webpackager/resource/preload/preloadtest"
 )
 
 func TestExtractPreloadTags(t *testing.T) {
+	pl := preloadtest.NewPreloadForRawLink
+
 	tests := []struct {
 		name string
 		url  string
 		html string
-		want []string
+		want []*preload.Preload
 	}{
 		{
 			name: "Minimal",
@@ -35,9 +39,9 @@ func TestExtractPreloadTags(t *testing.T) {
 			       <link href="https://example.com/hello/foo.jpg"
 			           rel="preload" as="image">
 			       <link href="bar.jpg" rel="preload" as="image">`,
-			want: []string{
-				`<https://example.com/hello/foo.jpg>;rel="preload";as="image"`,
-				`<https://example.com/hello/bar.jpg>;rel="preload";as="image"`,
+			want: []*preload.Preload{
+				pl(`<https://example.com/hello/foo.jpg>;rel="preload";as="image"`),
+				pl(`<https://example.com/hello/bar.jpg>;rel="preload";as="image"`),
 			},
 		},
 		{
@@ -48,9 +52,9 @@ func TestExtractPreloadTags(t *testing.T) {
 			       <link href="https://example.com/hello/foo.jpg"
 			           rel="preload" as="image">
 			       <link href="bar.jpg" rel="preload" as="image">`,
-			want: []string{
-				`<https://example.com/hello/foo.jpg>;rel="preload";as="image"`,
-				`<https://example.com/world/bar.jpg>;rel="preload";as="image"`,
+			want: []*preload.Preload{
+				pl(`<https://example.com/hello/foo.jpg>;rel="preload";as="image"`),
+				pl(`<https://example.com/world/bar.jpg>;rel="preload";as="image"`),
 			},
 		},
 		{
@@ -59,9 +63,8 @@ func TestExtractPreloadTags(t *testing.T) {
 			html: `<!doctype html>
 			       <link href="/fonts/icons.woff2" rel="preload"
 			              as="font" type="font/woff2" crossorigin>`,
-			want: []string{
-				`<https://example.com/fonts/icons.woff2>;rel="preload";` +
-					`as="font";crossorigin;type="font/woff2"`,
+			want: []*preload.Preload{
+				pl(`<https://example.com/fonts/icons.woff2>;rel="preload";as="font";crossorigin;type="font/woff2"`),
 			},
 		},
 		{
@@ -72,11 +75,9 @@ func TestExtractPreloadTags(t *testing.T) {
 			             media="(max-width: 600px)">
 			       <link href="large.jpg" rel="preload" as="image"
 			             media="(min-width: 601px)">`,
-			want: []string{
-				`<https://example.com/hello/small.jpg>;rel="preload";` +
-					`as="image";media="(max-width: 600px)"`,
-				`<https://example.com/hello/large.jpg>;rel="preload";` +
-					`as="image";media="(min-width: 601px)"`,
+			want: []*preload.Preload{
+				pl(`<https://example.com/hello/small.jpg>;rel="preload";as="image";media="(max-width: 600px)"`),
+				pl(`<https://example.com/hello/large.jpg>;rel="preload";as="image";media="(min-width: 601px)"`),
 			},
 		},
 	}
@@ -89,11 +90,7 @@ func TestExtractPreloadTags(t *testing.T) {
 			if err := extractPreloadTags.Run(resp); err != nil {
 				t.Fatalf("got error(%q), want success", err)
 			}
-			got := make([]string, len(resp.Preloads))
-			for i, p := range resp.Preloads {
-				got[i] = p.Header()
-			}
-			if diff := cmp.Diff(test.want, got); diff != "" {
+			if diff := cmp.Diff(test.want, resp.Preloads); diff != "" {
 				t.Errorf("resp.Preloads mismatch (-want +got):\n%s", diff)
 			}
 		})

@@ -19,14 +19,18 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/webpackager/processor/htmlproc/htmltask"
+	"github.com/google/webpackager/resource/preload"
+	"github.com/google/webpackager/resource/preload/preloadtest"
 )
 
 func TestScriptTask(t *testing.T) {
+	pl := preloadtest.NewPreloadForRawLink
+
 	tests := []struct {
 		name string
 		url  string
 		html string
-		want []string
+		want []*preload.Preload
 	}{
 		{
 			name: "Head",
@@ -38,10 +42,10 @@ func TestScriptTask(t *testing.T) {
 			         <title>Test Docuemnt</title>
 			         <script src="baz.js"></script>
 			       </head>`,
-			want: []string{
-				`<https://example.com/hello/foo.js>;rel="preload";as="script"`,
-				`<https://example.com/hello/bar.js>;rel="preload";as="script"`,
-				`<https://example.com/hello/baz.js>;rel="preload";as="script"`,
+			want: []*preload.Preload{
+				pl(`<https://example.com/hello/foo.js>;rel="preload";as="script"`),
+				pl(`<https://example.com/hello/bar.js>;rel="preload";as="script"`),
+				pl(`<https://example.com/hello/baz.js>;rel="preload";as="script"`),
 			},
 		},
 		{
@@ -51,8 +55,8 @@ func TestScriptTask(t *testing.T) {
 			       <body>
 			         <script src="foo.js"></script>
 			       </body>`,
-			want: []string{
-				`<https://example.com/hello/foo.js>;rel="preload";as="script"`,
+			want: []*preload.Preload{
+				pl(`<https://example.com/hello/foo.js>;rel="preload";as="script"`),
 			},
 		},
 		{
@@ -63,7 +67,7 @@ func TestScriptTask(t *testing.T) {
 			         This is a test document.
 			         <script src="foo.js"></script>
 			       </body>`,
-			want: []string{},
+			want: nil,
 		},
 		{
 			name: "Body_Image",
@@ -73,7 +77,7 @@ func TestScriptTask(t *testing.T) {
 			         <img src="thumb.jpg">
 			         <script src="foo.js"></script>
 			       </body>`,
-			want: []string{},
+			want: nil,
 		},
 		{
 			name: "Body_EmptyElement",
@@ -83,8 +87,8 @@ func TestScriptTask(t *testing.T) {
 			         <div></div>
 			         <script src="foo.js"></script>
 			       </body>`,
-			want: []string{
-				`<https://example.com/hello/foo.js>;rel="preload";as="script"`,
+			want: []*preload.Preload{
+				pl(`<https://example.com/hello/foo.js>;rel="preload";as="script"`),
 			},
 		},
 		{
@@ -95,7 +99,7 @@ func TestScriptTask(t *testing.T) {
 			         <div>This is a test document.</div>
 			         <script src="foo.js"></script>
 			       </body>`,
-			want: []string{},
+			want: nil,
 		},
 		{
 			name: "Body_DirectScript",
@@ -105,8 +109,8 @@ func TestScriptTask(t *testing.T) {
                      <script>(function(){})();</script>
 			         <script src="foo.js"></script>
 			       </body>`,
-			want: []string{
-				`<https://example.com/hello/foo.js>;rel="preload";as="script"`,
+			want: []*preload.Preload{
+				pl(`<https://example.com/hello/foo.js>;rel="preload";as="script"`),
 			},
 		},
 		{
@@ -117,8 +121,8 @@ func TestScriptTask(t *testing.T) {
                      <noscript>Needs JavaScript.</noscript>
 			         <script src="foo.js"></script>
 			       </body>`,
-			want: []string{
-				`<https://example.com/hello/foo.js>;rel="preload";as="script"`,
+			want: []*preload.Preload{
+				pl(`<https://example.com/hello/foo.js>;rel="preload";as="script"`),
 			},
 		},
 		{
@@ -129,8 +133,8 @@ func TestScriptTask(t *testing.T) {
 			         <!-- Comment -->
 			         <script src="foo.js"></script>
 			       </body>`,
-			want: []string{
-				`<https://example.com/hello/foo.js>;rel="preload";as="script"`,
+			want: []*preload.Preload{
+				pl(`<https://example.com/hello/foo.js>;rel="preload";as="script"`),
 			},
 		},
 		{
@@ -144,9 +148,9 @@ func TestScriptTask(t *testing.T) {
 			         <div>This is a test document.</div>
 			         <script src="baz.js"></script>
 			       </body>`,
-			want: []string{
-				`<https://example.com/hello/foo.js>;rel="preload";as="script"`,
-				`<https://example.com/hello/bar.js>;rel="preload";as="script"`,
+			want: []*preload.Preload{
+				pl(`<https://example.com/hello/foo.js>;rel="preload";as="script"`),
+				pl(`<https://example.com/hello/bar.js>;rel="preload";as="script"`),
 			},
 		},
 		{
@@ -161,10 +165,10 @@ func TestScriptTask(t *testing.T) {
 			       <body>
 			         <script src="baz.js"></script>
 			       </body>`,
-			want: []string{
-				`<https://example.com/hello/foo.js>;rel="preload";as="script"`,
-				`<https://example.com/world/bar.js>;rel="preload";as="script"`,
-				`<https://example.com/world/baz.js>;rel="preload";as="script"`,
+			want: []*preload.Preload{
+				pl(`<https://example.com/hello/foo.js>;rel="preload";as="script"`),
+				pl(`<https://example.com/world/bar.js>;rel="preload";as="script"`),
+				pl(`<https://example.com/world/baz.js>;rel="preload";as="script"`),
 			},
 		},
 		{
@@ -174,8 +178,8 @@ func TestScriptTask(t *testing.T) {
 			       <head>
 			         <script src="https://example.org/hello/foo.js"></script>
 			       </head>`,
-			want: []string{
-				`<https://example.org/hello/foo.js>;rel="preload";as="script"`,
+			want: []*preload.Preload{
+				pl(`<https://example.org/hello/foo.js>;rel="preload";as="script"`),
 			},
 		},
 		{
@@ -188,18 +192,19 @@ func TestScriptTask(t *testing.T) {
 			         <script src="type.js" type="text/javascript"></script>
 			         <script>src="embed.js"</script>
 			       </head>`,
-			want: []string{
-				`<https://example.com/hello/type.js>;rel="preload";as="script"`,
+			want: []*preload.Preload{
+				pl(`<https://example.com/hello/type.js>;rel="preload";as="script"`),
 			},
 		},
 	}
+
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			resp := makeHTMLResponse(test.url, test.html)
 			if err := htmltask.InsecurePreloadScripts().Run(resp); err != nil {
 				t.Errorf("got error(%q), want success", err)
 			}
-			if diff := cmp.Diff(test.want, preloadHeaders(resp)); diff != "" {
+			if diff := cmp.Diff(test.want, resp.Preloads); diff != "" {
 				t.Errorf("resp.Preloads mismatch (-want +got):\n%s", diff)
 			}
 		})
