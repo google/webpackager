@@ -22,6 +22,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/WICG/webpackage/go/signedexchange/structuredheader"
 	"github.com/WICG/webpackage/go/signedexchange/version"
 	"github.com/google/webpackager/exchange"
 	"github.com/google/webpackager/exchange/exchangetest"
@@ -149,6 +150,58 @@ func TestFactory(t *testing.T) {
 				if !bytes.Equal(got, html) {
 					t.Errorf("got %q (%d bytes), want %q (%d bytes)", got, len(got), html, len(html))
 				}
+			}
+		})
+	}
+}
+
+func TestRelativeCertURL(t *testing.T) {
+	factory := &exchange.Factory{
+		Version:      version.Version1b3,
+		MIRecordSize: 4096,
+		CertChain:    certtest.ReadCertChainFile("../testdata/certs/test.cbor"),
+		CertURL:      urlutil.MustParse("/cert.cbor"),
+		PrivateKey:   certtest.ReadPrivateKeyFile("../testdata/certs/test.key"),
+	}
+	vp := exchange.NewValidPeriod(
+		time.Date(2019, time.April, 22, 19, 30, 0, 0, time.UTC),
+		time.Date(2019, time.April, 29, 19, 30, 0, 0, time.UTC))
+
+	tests := []struct {
+		name        string
+		url         string
+		wantCertURL string
+	}{
+		{
+			name:        "example.org",
+			url:         "https://example.org/index.html",
+			wantCertURL: "https://example.org/cert.cbor",
+		},
+		{
+			name:        "example.com",
+			url:         "https://example.com/index.html",
+			wantCertURL: "https://example.com/cert.cbor",
+		},
+	}
+
+	vu := urlutil.MustParse("https://example.org/index.html.validity")
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			resp := exchangetest.MakeEmptyResponse(test.url)
+			e, err := factory.NewExchange(resp, vp, vu)
+			if err != nil {
+				t.Fatalf("got error(%q), want success", err)
+			}
+			sig, err := structuredheader.ParseParameterisedList(e.SignatureHeaderValue)
+			if err != nil {
+				t.Fatalf("ParseParameterizedList() = error(%q), want success", err)
+			}
+			if len(sig) == 0 {
+				t.Fatal("ParseParameterizedList() = empty, want nonempty")
+			}
+			if got := sig[0].Params["cert-url"]; got != test.wantCertURL {
+				t.Errorf(`sig[0].Params["cert-url"] = %q, want %q`, got, test.wantCertURL)
 			}
 		})
 	}

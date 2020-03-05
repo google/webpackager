@@ -29,6 +29,10 @@ import (
 )
 
 // Factory holds the parameters to generate signed exchanges.
+//
+// CertURL can be relative, in which case Factory resolves the absolute URL
+// using the request URL. It should usually contain an absolute path though
+// (e.g. "/cert.cbor" rather than "cert.cbor").
 type Factory struct {
 	Version      version.Version
 	MIRecordSize int
@@ -39,9 +43,11 @@ type Factory struct {
 
 // NewExchange generates a signed exchange from resp, vp, and validityURL.
 func (fty *Factory) NewExchange(resp *Response, vp ValidPeriod, validityURL *url.URL) (*signedexchange.Exchange, error) {
+	u := resp.Request.URL
+
 	e := signedexchange.NewExchange(
 		fty.Version,
-		resp.Request.URL.String(),
+		u.String(),
 		resp.Request.Method,
 		resp.Request.Header,
 		resp.StatusCode,
@@ -55,7 +61,7 @@ func (fty *Factory) NewExchange(resp *Response, vp ValidPeriod, validityURL *url
 		Date:        vp.Date(),
 		Expires:     vp.Expires(),
 		Certs:       certutil.GetCertificates(fty.CertChain),
-		CertUrl:     fty.CertURL,
+		CertUrl:     u.ResolveReference(fty.CertURL),
 		ValidityUrl: validityURL,
 		PrivKey:     fty.PrivateKey,
 	}
