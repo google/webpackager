@@ -151,6 +151,7 @@ func parseCertURL(s string) (*url.URL, error) {
 	if err != nil {
 		return nil, err
 	}
+	// TODO(yuizumi): Support data: URIs and relative URLs.
 	if u.Scheme != "https" {
 		return nil, errors.New("must be an https:// url")
 	}
