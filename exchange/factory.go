@@ -15,7 +15,6 @@
 package exchange
 
 import (
-	"crypto"
 	"errors"
 	"log"
 	"net/url"
@@ -23,22 +22,19 @@ import (
 	"time"
 
 	"github.com/WICG/webpackage/go/signedexchange"
-	"github.com/WICG/webpackage/go/signedexchange/certurl"
-	"github.com/WICG/webpackage/go/signedexchange/version"
 	"github.com/google/webpackager/internal/certutil"
 )
 
-// Factory holds the parameters to generate signed exchanges.
-//
-// CertURL can be relative, in which case Factory resolves the absolute URL
-// using the request URL. It should usually contain an absolute path though
-// (e.g. "/cert.cbor" rather than "cert.cbor").
+// Factory produces and verifies signed exchanges.
 type Factory struct {
-	Version      version.Version
-	MIRecordSize int
-	CertChain    certurl.CertChain
-	CertURL      *url.URL
-	PrivateKey   crypto.PrivateKey
+	Config
+}
+
+// NewFactory creates and initializes a new Factory. It panics if c.CertChain
+// or c.PrivateKey is nil.
+func NewFactory(c Config) *Factory {
+	c.populateDefaults()
+	return &Factory{c}
 }
 
 // NewExchange generates a signed exchange from resp, vp, and validityURL.

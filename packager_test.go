@@ -21,7 +21,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/WICG/webpackage/go/signedexchange/version"
 	"github.com/google/webpackager"
 	"github.com/google/webpackager/exchange"
 	"github.com/google/webpackager/exchange/vprule"
@@ -49,13 +48,11 @@ func makeConfig(server *httptest.Server) webpackager.Config {
 			HTML: htmlproc.Config{TaskSet: tasks},
 		}),
 		ValidPeriodRule: vprule.FixedLifetime(7 * 24 * time.Hour),
-		ExchangeFactory: &exchange.Factory{
-			Version:      version.Version1b3,
-			MIRecordSize: 4096,
-			CertChain:    certtest.ReadCertChainFile("testdata/certs/test.cbor"),
-			CertURL:      urlutil.MustParse("https://example.org/cert.cbor"),
-			PrivateKey:   certtest.ReadPrivateKeyFile("testdata/certs/test.key"),
-		},
+		ExchangeFactory: exchange.NewFactory(exchange.Config{
+			CertChain:  certtest.ReadCertChainFile("testdata/certs/test.cbor"),
+			CertURL:    urlutil.MustParse("https://example.org/cert.cbor"),
+			PrivateKey: certtest.ReadPrivateKeyFile("testdata/certs/test.key"),
+		}),
 	}
 }
 
