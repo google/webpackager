@@ -23,7 +23,6 @@ import (
 	"time"
 
 	"github.com/WICG/webpackage/go/signedexchange/structuredheader"
-	"github.com/WICG/webpackage/go/signedexchange/version"
 	"github.com/google/webpackager/exchange"
 	"github.com/google/webpackager/exchange/exchangetest"
 	"github.com/google/webpackager/internal/certutil/certtest"
@@ -39,13 +38,11 @@ func eraseSignature(sxg []byte) []byte {
 
 func TestFactory(t *testing.T) {
 	// Initialize Factory with the parameters given to gen-signedexchange.
-	factory := &exchange.Factory{
-		Version:      version.Version1b3,
-		MIRecordSize: 4096,
-		CertChain:    certtest.ReadCertChainFile("../testdata/certs/test.cbor"),
-		CertURL:      urlutil.MustParse("https://example.org/cert.cbor"),
-		PrivateKey:   certtest.ReadPrivateKeyFile("../testdata/certs/test.key"),
-	}
+	factory := exchange.NewFactory(exchange.Config{
+		CertChain:  certtest.ReadCertChainFile("../testdata/certs/test.cbor"),
+		CertURL:    urlutil.MustParse("https://example.org/cert.cbor"),
+		PrivateKey: certtest.ReadPrivateKeyFile("../testdata/certs/test.key"),
+	})
 	vp := exchange.NewValidPeriod(
 		time.Date(2019, time.April, 22, 19, 30, 0, 0, time.UTC),
 		time.Date(2019, time.April, 29, 19, 30, 0, 0, time.UTC))
@@ -156,13 +153,11 @@ func TestFactory(t *testing.T) {
 }
 
 func TestRelativeCertURL(t *testing.T) {
-	factory := &exchange.Factory{
-		Version:      version.Version1b3,
-		MIRecordSize: 4096,
-		CertChain:    certtest.ReadCertChainFile("../testdata/certs/test.cbor"),
-		CertURL:      urlutil.MustParse("/cert.cbor"),
-		PrivateKey:   certtest.ReadPrivateKeyFile("../testdata/certs/test.key"),
-	}
+	factory := exchange.NewFactory(exchange.Config{
+		CertChain:  certtest.ReadCertChainFile("../testdata/certs/test.cbor"),
+		CertURL:    urlutil.MustParse("/cert.cbor"),
+		PrivateKey: certtest.ReadPrivateKeyFile("../testdata/certs/test.key"),
+	})
 	vp := exchange.NewValidPeriod(
 		time.Date(2019, time.April, 22, 19, 30, 0, 0, time.UTC),
 		time.Date(2019, time.April, 29, 19, 30, 0, 0, time.UTC))
