@@ -86,6 +86,9 @@ availability) at this moment.
 go get -u github.com/google/webpackager/cmd/...
 ```
 
+**Note:** Currently Web Packager compiles on Go 1.11+ but you need to enable
+    Go modules. On Go 1.11/1.12, you may require to set `GO111MODULE=on`.
+
 
 ## Usage
 
