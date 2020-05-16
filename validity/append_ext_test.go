@@ -30,7 +30,7 @@ func TestAppendExtDotUnixTime(t *testing.T) {
 		name   string
 		url    string
 		header http.Header
-		rule   validity.ValidityURLRule
+		rule   validity.URLRule
 		vp     exchange.ValidPeriod
 		want   string
 	}{

@@ -17,29 +17,13 @@ package validity
 import (
 	"fmt"
 	"log"
+	"net/http"
 	"net/url"
 	"time"
 
 	"github.com/google/webpackager/exchange"
-	"github.com/google/webpackager/internal/httpheader"
 	"github.com/google/webpackager/internal/urlutil"
 )
-
-// ValidityURLRule decides the validity URL of a resource.
-type ValidityURLRule interface {
-	// Apply returns the validity URL of a resource. physurl is the physical
-	// URL of the resource; resp is the HTTP response; vp is the period the
-	// signed exchange will be valid for. The physical URL is typically equal
-	// to the request URL but different in some cases; see package urlrewrite
-	// for more details.
-	//
-	// Note ValidityURLRule implementations can retrieve the request URL via
-	// resp.Request.URL.
-	Apply(physurl *url.URL, resp *exchange.Response, vp exchange.ValidPeriod) (*url.URL, error)
-}
-
-// DefaultValidityURLRule is the default rule used by webpackager.Packager.
-var DefaultValidityURLRule ValidityURLRule = AppendExtDotLastModified(".validity")
 
 // AppendExtDotLastModified generates the validity URL by appending ext
 // and the resource's last modified time. For example:
@@ -66,7 +50,7 @@ var DefaultValidityURLRule ValidityURLRule = AppendExtDotLastModified(".validity
 //
 // The AppendExtDotLastModified rule ignores Query and Fragment in physurl.
 // The validity URLs will always have empty Query and Fragment.
-func AppendExtDotLastModified(ext string) ValidityURLRule {
+func AppendExtDotLastModified(ext string) URLRule {
 	return &appendExtDotLastModified{ext}
 }
 
@@ -79,7 +63,7 @@ func (rule *appendExtDotLastModified) Apply(physurl *url.URL, resp *exchange.Res
 	if date == "" {
 		return toValidityURL(physurl, rule.ext, vp.Date())
 	}
-	parsed, err := httpheader.ParseDate(date)
+	parsed, err := http.ParseTime(date)
 	if err != nil {
 		log.Printf("warning: failed to parse the header %q: %v", date, err)
 		return toValidityURL(physurl, rule.ext, vp.Date())
@@ -89,7 +73,7 @@ func (rule *appendExtDotLastModified) Apply(physurl *url.URL, resp *exchange.Res
 
 // AppendExtDotExchangeDate is like AppendExtDotLastModified but always
 // uses vp.Date instead of the last modified time.
-func AppendExtDotExchangeDate(ext string) ValidityURLRule {
+func AppendExtDotExchangeDate(ext string) URLRule {
 	return &appendExtDotExchangeDate{ext}
 }
 
