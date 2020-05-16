@@ -12,5 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package validity defines interfaces to represent validity URL rules.
+// Package validity handles the validity data of signed exchanges. It only
+// defines validity URLs at the moment though.
 package validity

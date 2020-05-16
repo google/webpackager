@@ -193,7 +193,7 @@ func getPhysicalURLRuleFromFlags() (urlrewrite.Rule, error) {
 	return rule, nil
 }
 
-func getValidityURLRuleFromFlags() (validity.ValidityURLRule, error) {
+func getValidityURLRuleFromFlags() (validity.URLRule, error) {
 	return validity.AppendExtDotLastModified(*flagValidityExt), nil
 }
 

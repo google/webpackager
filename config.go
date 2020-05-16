@@ -56,8 +56,9 @@ type Config struct {
 	// ValidityURLRule specifies the rule to determine the validity URL,
 	// where the validity data should be served.
 	//
-	// nil implies validity.AppendExtDotUnixTime(".validity", time.Now()).
-	ValidityURLRule validity.ValidityURLRule
+	// nil implies validity.DefaultURLRule, which appends ".validity" plus
+	// the last modified time (in UNIX time) to the document URL.
+	ValidityURLRule validity.URLRule
 
 	// Processor specifies the processor(s) applied to each HTTP response
 	// before turning it into a signed exchange. The processors make sure
@@ -109,7 +110,7 @@ func (cfg *Config) populateDefaults() {
 		cfg.PhysicalURLRule = urlrewrite.DefaultRules
 	}
 	if cfg.ValidityURLRule == nil {
-		cfg.ValidityURLRule = validity.DefaultValidityURLRule
+		cfg.ValidityURLRule = validity.DefaultURLRule
 	}
 	if cfg.Processor == nil {
 		cfg.Processor = complexproc.DefaultProcessor
