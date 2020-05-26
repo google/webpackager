@@ -26,7 +26,7 @@ import (
 // These are the default values in Config.
 const (
 	DefaultVersion      = version.Version1b3
-	DefaultMIRecordSize = 4096
+	DefaultMIRecordSize = 16384
 )
 
 // DefaultCertURL is the default value for CertURL in Config.

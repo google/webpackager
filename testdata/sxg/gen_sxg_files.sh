@@ -10,6 +10,7 @@ gen-signedexchange \
     -content standalone.html \
     -date 2019-04-22T19:30:00Z \
     -expire 168h \
+    -miRecordSize 16384 \
     -certUrl https://example.org/cert.cbor \
     -certificate ../certs/test.pem \
     -privateKey ../certs/test.key \
@@ -26,6 +27,7 @@ gen-signedexchange \
     -content preloading.html \
     -date 2019-04-22T19:30:00Z \
     -expire 168h \
+    -miRecordSize 16384 \
     -certUrl https://example.org/cert.cbor \
     -certificate ../certs/test.pem \
     -privateKey ../certs/test.key \
@@ -41,6 +43,7 @@ gen-signedexchange \
     -content incomplete.html \
     -date 2019-04-22T19:30:00Z \
     -expire 168h \
+    -miRecordSize 16384 \
     -certUrl https://example.org/cert.cbor \
     -certificate ../certs/test.pem \
     -privateKey ../certs/test.key \
