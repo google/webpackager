@@ -1,0 +1,12 @@
+V	200531000000Z		01	unknown	/CN=webpackager.test
+V	200531000000Z		02	unknown	/CN=webpackager.test
+V	200531000000Z		03	unknown	/CN=webpackager.test
+V	200531000000Z		04	unknown	/CN=webpackager.test
+V	200630000000Z		05	unknown	/CN=webpackager.test
+V	200701000000Z		06	unknown	/CN=webpackager.test
+V	210401000000Z		07	unknown	/CN=webpackager.test
+V	200331000000Z		08	unknown	/CN=webpackager.test
+V	200531000000Z		09	unknown	/CN=webpackager.test
+R	200531000000Z	200401120000Z,keyCompromise	0A	unknown	/CN=webpackager.test
+V	200416000000Z		0B	unknown	/CN=webpackager.test
+V	200430000000Z		0C	unknown	/CN=webpackager.test

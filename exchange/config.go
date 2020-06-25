@@ -18,8 +18,8 @@ import (
 	"crypto"
 	"net/url"
 
-	"github.com/WICG/webpackage/go/signedexchange/certurl"
 	"github.com/WICG/webpackage/go/signedexchange/version"
+	"github.com/google/webpackager/certchain"
 	"github.com/google/webpackager/internal/urlutil"
 )
 
@@ -44,7 +44,7 @@ type Config struct {
 	MIRecordSize int
 
 	// CertChain specifies the certificate chain. CertChain may not be nil.
-	CertChain certurl.CertChain
+	CertChain *certchain.AugmentedChain
 
 	// CertURL specifies the cert-url parameter in the signature. It can be
 	// relative, in which case Factory resolves the absolute URL using
@@ -56,6 +56,11 @@ type Config struct {
 	// PrivateKey specifies the private key used for signing. PrivateKey may
 	// not be nil.
 	PrivateKey crypto.PrivateKey
+
+	// KeepNonSXGPreloads instructs Factory to include preload link headers
+	// that don't have the corresponding allowed-alt-sxg with a valid
+	// header-integrity.
+	KeepNonSXGPreloads bool
 }
 
 func (c *Config) populateDefaults() {

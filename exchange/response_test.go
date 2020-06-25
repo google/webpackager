@@ -132,7 +132,7 @@ func TestGetFullHeader_PreserveNoLinkHeader(t *testing.T) {
 	p := preloadtest.NewPreloadForRawURL("https://example.org/style.css", preload.AsStyle)
 	resp.AddPreload(p)
 
-	_ = resp.GetFullHeader()
+	_ = resp.GetFullHeader(false)
 
 	if got, ok := resp.Header["Link"]; ok {
 		t.Errorf(`resp.Header["Link"] = %q, want missing`, got)
@@ -153,7 +153,7 @@ func TestGetFullHeader_PreserveLinkHeader(t *testing.T) {
 	p := preloadtest.NewPreloadForRawURL("https://example.org/style.css", preload.AsStyle)
 	resp.AddPreload(p)
 
-	_ = resp.GetFullHeader()
+	_ = resp.GetFullHeader(false)
 
 	want := []string{"<style.css>; rel=stylesheet"}
 	if diff := cmp.Diff(want, resp.Header["Link"]); diff != "" {

@@ -116,7 +116,7 @@ func verifyExchange(t *testing.T, pkg *webpackager.Packager, url string, date ti
 		return
 	}
 
-	if _, err := pkg.ExchangeFactory.Verify(r.Exchange, date); err != nil {
+	if _, err := pkg.ExchangeFactory.Get().Verify(r.Exchange, date); err != nil {
 		t.Errorf("Verify(sxg[%q]) = error(%q), want success", url, err)
 	}
 	if got := strings.Join(r.Exchange.ResponseHeaders["Link"], ","); got != link {

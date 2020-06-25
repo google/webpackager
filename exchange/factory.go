@@ -22,12 +22,17 @@ import (
 	"time"
 
 	"github.com/WICG/webpackage/go/signedexchange"
-	"github.com/google/webpackager/internal/certutil"
+	"github.com/google/webpackager/certchain/certchainutil"
 )
 
 // Factory produces and verifies signed exchanges.
 type Factory struct {
 	Config
+}
+
+// FactoryProvider provides Factory.
+type FactoryProvider interface {
+	Get() *Factory
 }
 
 // NewFactory creates and initializes a new Factory. It panics if c.CertChain
@@ -47,7 +52,7 @@ func (fty *Factory) NewExchange(resp *Response, vp ValidPeriod, validityURL *url
 		resp.Request.Method,
 		resp.Request.Header,
 		resp.StatusCode,
-		resp.GetFullHeader(),
+		resp.GetFullHeader(fty.Config.KeepNonSXGPreloads),
 		resp.Payload)
 	if err := e.MiEncodePayload(fty.MIRecordSize); err != nil {
 		return nil, err
@@ -56,7 +61,7 @@ func (fty *Factory) NewExchange(resp *Response, vp ValidPeriod, validityURL *url
 	signer := &signedexchange.Signer{
 		Date:        vp.Date(),
 		Expires:     vp.Expires(),
-		Certs:       certutil.GetCertificates(fty.CertChain),
+		Certs:       fty.CertChain.Certs,
 		CertUrl:     u.ResolveReference(fty.CertURL),
 		ValidityUrl: validityURL,
 		PrivKey:     fty.PrivateKey,
@@ -75,7 +80,7 @@ func (fty *Factory) Verify(e *signedexchange.Exchange, date time.Time) ([]byte, 
 
 	payload, ok := e.Verify(
 		date,
-		certutil.FakeCertFetcher(fty.CertChain, fty.CertURL),
+		certchainutil.WrapToCertFetcher(fty.CertChain),
 		log.New(&logText, "", 0))
 	if !ok {
 		return nil, errors.New(logText.String())
@@ -83,3 +88,7 @@ func (fty *Factory) Verify(e *signedexchange.Exchange, date time.Time) ([]byte, 
 
 	return payload, nil
 }
+
+// Get returns fty. It implements FactoryProvider and allows Factory to be
+// set directory to ExchangeFactory in webpackager.Config.
+func (fty *Factory) Get() *Factory { return fty }

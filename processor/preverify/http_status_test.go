@@ -19,6 +19,7 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/google/webpackager/exchange/exchangetest"
 	"github.com/google/webpackager/processor"
 	"github.com/google/webpackager/processor/preverify"
@@ -81,6 +82,7 @@ func TestHTTPStatusCode_Error(t *testing.T) {
 		url  string
 		proc processor.Processor
 		resp string
+		err  error
 	}{
 		{
 			name: "NoContent_Excluded",
@@ -93,6 +95,7 @@ func TestHTTPStatusCode_Error(t *testing.T) {
 				"Cache-Control: public, max-age=1209600\r\n",
 				"\r\n",
 			),
+			err: preverify.NewHTTPStatusError(204),
 		},
 		{
 			name: "NotFound",
@@ -109,13 +112,15 @@ func TestHTTPStatusCode_Error(t *testing.T) {
 				"\r\n",
 				"<!doctype html><p>404 Not Found</p>",
 			),
+			err: preverify.NewHTTPStatusError(404),
 		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			resp := exchangetest.MakeResponse(test.url, test.resp)
-			if err := test.proc.Process(resp); err == nil {
-				t.Error("got success, want error")
+			err := test.proc.Process(resp)
+			if diff := cmp.Diff(test.err, err); diff != "" {
+				t.Errorf("Process() = %v, want %v", err, test.err)
 			}
 		})
 	}

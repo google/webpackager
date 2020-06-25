@@ -25,7 +25,7 @@ import (
 	"github.com/WICG/webpackage/go/signedexchange/structuredheader"
 	"github.com/google/webpackager/exchange"
 	"github.com/google/webpackager/exchange/exchangetest"
-	"github.com/google/webpackager/internal/certutil/certtest"
+	"github.com/google/webpackager/internal/certchaintest"
 	"github.com/google/webpackager/internal/urlutil"
 	"github.com/google/webpackager/resource"
 	"github.com/google/webpackager/resource/preload"
@@ -39,9 +39,9 @@ func eraseSignature(sxg []byte) []byte {
 func TestFactory(t *testing.T) {
 	// Initialize Factory with the parameters given to gen-signedexchange.
 	factory := exchange.NewFactory(exchange.Config{
-		CertChain:  certtest.ReadCertChainFile("../testdata/certs/test.cbor"),
+		CertChain:  certchaintest.MustReadAugmentedChainFile("../testdata/certs/cbor/ecdsap256_nosct.cbor"),
 		CertURL:    urlutil.MustParse("https://example.org/cert.cbor"),
-		PrivateKey: certtest.ReadPrivateKeyFile("../testdata/certs/test.key"),
+		PrivateKey: certchaintest.MustReadPrivateKeyFile("../testdata/keys/ecdsap256.key"),
 	})
 	vp := exchange.NewValidPeriod(
 		time.Date(2019, time.April, 22, 19, 30, 0, 0, time.UTC),
@@ -154,9 +154,9 @@ func TestFactory(t *testing.T) {
 
 func TestRelativeCertURL(t *testing.T) {
 	factory := exchange.NewFactory(exchange.Config{
-		CertChain:  certtest.ReadCertChainFile("../testdata/certs/test.cbor"),
+		CertChain:  certchaintest.MustReadAugmentedChainFile("../testdata/certs/cbor/ecdsap256_nosct.cbor"),
 		CertURL:    urlutil.MustParse("/cert.cbor"),
-		PrivateKey: certtest.ReadPrivateKeyFile("../testdata/certs/test.key"),
+		PrivateKey: certchaintest.MustReadPrivateKeyFile("../testdata/keys/ecdsap256.key"),
 	})
 	vp := exchange.NewValidPeriod(
 		time.Date(2019, time.April, 22, 19, 30, 0, 0, time.UTC),

@@ -1,0 +1,89 @@
+oid_section		= new_oids
+
+[ new_oids ]
+canSignHttpExchanges	= 1.3.6.1.4.1.11129.2.1.22
+
+[ CA_root ]
+dir			= ./CA/root
+certs			= $dir/certs
+crl_dir			= $dir/crl
+database		= $dir/index.txt
+unique_subject		= no
+new_certs_dir		= $dir/newcerts
+certificate		= $dir/cert.pem
+serial			= $dir/serial
+crlnumber		= $dir/crlnumber
+crl			= $dir/crl.pem
+private_key		= $dir/key.pem
+x509_extensions		= ca_cert
+name_opt 		= ca_default
+cert_opt 		= ca_default
+default_days		= 365
+default_crl_days	= 30
+default_md		= default
+preserve		= no
+policy			= policy_anything
+
+[ CA_inter ]
+dir			= ./CA/inter
+certs			= $dir/certs
+crl_dir			= $dir/crl
+database		= $dir/index.txt
+unique_subject		= no
+new_certs_dir		= $dir/newcerts
+certificate		= $dir/cert.pem
+serial			= $dir/serial
+crlnumber		= $dir/crlnumber
+crl			= $dir/crl.pem
+private_key		= $dir/key.pem
+x509_extensions		= tls_cert
+name_opt 		= ca_default
+cert_opt 		= ca_default
+default_days		= 90
+default_crl_days	= 30
+default_md		= default
+preserve		= no
+policy			= policy_anything
+
+[ policy_anything ]
+countryName		= optional
+stateOrProvinceName	= optional
+localityName		= optional
+organizationName	= optional
+organizationalUnitName	= optional
+commonName		= supplied
+emailAddress		= optional
+
+[ req ]
+distinguished_name	= req_distinguished_name
+string_mask		= utf8only
+
+[ req_distinguished_name ]
+
+[ tls_cert ]
+basicConstraints	= critical, CA:false
+subjectKeyIdentifier	= hash
+authorityKeyIdentifier	= keyid:always, issuer
+authorityInfoAccess	= OCSP;URI:http://ocsp.webpackager-ca.test
+
+[ sxg_cert ]
+basicConstraints	= critical, CA:false
+subjectKeyIdentifier	= hash
+authorityKeyIdentifier	= keyid:always, issuer
+authorityInfoAccess	= OCSP;URI:http://ocsp.webpackager-ca.test
+canSignHttpExchanges	= ASN1:NULL
+
+[ sxg_cert_selfsign ]
+subjectKeyIdentifier	= hash
+authorityKeyIdentifier	= keyid:always, issuer
+canSignHttpExchanges	= ASN1:NULL
+
+[ ca_cert ]
+basicConstraints	= critical, CA:true
+subjectKeyIdentifier	= hash
+authorityKeyIdentifier	= keyid:always, issuer
+keyUsage		= critical, digitalSignature, cRLSign, keyCertSign
+extendedKeyUsage	= OCSPSigning
+
+[ crl_ext ]
+authorityKeyIdentifier	= keyid:always

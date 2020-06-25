@@ -77,11 +77,13 @@ type Config struct {
 	// nil implies vprule.DefaultRule.
 	ValidPeriodRule vprule.Rule
 
-	// ExchangeFactory specifies encoding/signing parameters for producing
-	// signed exchanges.
+	// ExchangeFactory specifies encoding parameters and signing materials
+	// for producing signed exchanges. If you use the same certificate and
+	// private key for the whole lifetime of the Packager, you can specify
+	// an *exchange.Factory directly.
 	//
 	// ExchangeFactory must be set to non-nil.
-	ExchangeFactory *exchange.Factory
+	ExchangeFactory exchange.FactoryProvider
 
 	// ResourceCache specifies the cache to store the signed exchanges and
 	// the validity data.
