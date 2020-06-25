@@ -43,15 +43,17 @@ var (
 type packagerTaskRunner struct {
 	*Packager
 
-	date   time.Time
-	errs   *multierror.Error
-	active map[string]bool // Keyed by URLs.
+	date       time.Time
+	sxgFactory *exchange.Factory
+	errs       *multierror.Error
+	active     map[string]bool // Keyed by URLs.
 }
 
 func newTaskRunner(p *Packager, date time.Time) *packagerTaskRunner {
 	return &packagerTaskRunner{
 		p,
 		date,
+		p.ExchangeFactory.Get(),
 		new(multierror.Error),
 		make(map[string]bool),
 	}
@@ -109,7 +111,7 @@ func (task *packagerTask) run() error {
 		return err
 	}
 	if cached != nil {
-		if _, err := task.ExchangeFactory.Verify(cached.Exchange, task.date); err == nil {
+		if _, err := task.sxgFactory.Verify(cached.Exchange, task.date); err == nil {
 			log.Printf("reusing the existing signed exchange for %s", r.RequestURL)
 			*r = *cached
 			return nil
@@ -186,11 +188,11 @@ func (task *packagerTask) createExchange(rawResp *http.Response) (*signedexchang
 		}
 	}
 
-	sxg, err := task.ExchangeFactory.NewExchange(sxgResp, vp, vu)
+	sxg, err := task.sxgFactory.NewExchange(sxgResp, vp, vu)
 	if err != nil {
 		return nil, err
 	}
-	if _, err := task.ExchangeFactory.Verify(sxg, task.date); err != nil {
+	if _, err := task.sxgFactory.Verify(sxg, task.date); err != nil {
 		return nil, err
 	}
 

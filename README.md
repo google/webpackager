@@ -12,6 +12,11 @@ optimizing the page loading.
 [WICG/webpackage]: https://github.com/WICG/webpackage/
 [gen-signedexchange]: https://github.com/WICG/webpackage/tree/master/go/signedexchange
 
+Web Packager HTTP Server is an HTTP server built on top of Web Packager.
+It functions like a reverse-proxy, receiving signing requests over HTTP.
+For more detail, see [cmd/webpkgserver/README.md](cmd/webpkgserver/README.md).
+This README focuses on the command-line tool.
+
 Web Packager retrieves HTTP responses from servers and turns them into
 signed exchanges. Those signed exchanges are written into files in a way to
 preserve the URL path structure, so can be deployed easily in some typical
@@ -63,9 +68,9 @@ instructions at:
 
 ## Limitations
 
-Web Packager is currently at the alpha phase: it is not ready for production
-use and may contain serious issues. Also we may make backward-breaking changes
-at any time.
+Web Packager is currently at the alpha phase: it is not fully tested yet and
+must be used with caution in any production environment. Also we may make
+backward-breaking changes at any time.
 
 Web Packager does not handle [request matching][] correctly. It should not
 matter unless your web server implements content negotiation using the

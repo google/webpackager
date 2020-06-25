@@ -15,7 +15,6 @@
 package preverify
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/google/webpackager/exchange"
@@ -26,7 +25,7 @@ import (
 var HTTPStatusOK = HTTPStatusCode(http.StatusOK)
 
 // HTTPStatusCode ensures the response to have one of the provided HTTP
-// status codes.
+// status codes. Its Process method returns an HTTPStatusError on error.
 func HTTPStatusCode(expectedCodes ...int) processor.Processor {
 	expectedCodeSet := make(map[int]bool, len(expectedCodes))
 	for _, code := range expectedCodes {
@@ -41,7 +40,7 @@ type httpStatusCode struct {
 
 func (h *httpStatusCode) Process(resp *exchange.Response) error {
 	if !h.expected[resp.StatusCode] {
-		return fmt.Errorf("responded with status %d", resp.StatusCode)
+		return NewHTTPStatusError(resp.StatusCode)
 	}
 	return nil
 }

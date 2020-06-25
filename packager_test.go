@@ -26,7 +26,7 @@ import (
 	"github.com/google/webpackager/exchange/vprule"
 	"github.com/google/webpackager/fetch"
 	"github.com/google/webpackager/fetch/fetchtest"
-	"github.com/google/webpackager/internal/certutil/certtest"
+	"github.com/google/webpackager/internal/certchaintest"
 	"github.com/google/webpackager/internal/urlutil"
 	"github.com/google/webpackager/processor/complexproc"
 	"github.com/google/webpackager/processor/htmlproc"
@@ -49,9 +49,9 @@ func makeConfig(server *httptest.Server) webpackager.Config {
 		}),
 		ValidPeriodRule: vprule.FixedLifetime(7 * 24 * time.Hour),
 		ExchangeFactory: exchange.NewFactory(exchange.Config{
-			CertChain:  certtest.ReadCertChainFile("testdata/certs/test.cbor"),
+			CertChain:  certchaintest.MustReadAugmentedChainFile("testdata/certs/cbor/ecdsap256_nosct.cbor"),
 			CertURL:    urlutil.MustParse("https://example.org/cert.cbor"),
-			PrivateKey: certtest.ReadPrivateKeyFile("testdata/certs/test.key"),
+			PrivateKey: certchaintest.MustReadPrivateKeyFile("testdata/keys/ecdsap256.key"),
 		}),
 	}
 }
@@ -265,6 +265,44 @@ func TestSubresourceErrors(t *testing.T) {
 	defer server.Close()
 
 	pkg := webpackager.NewPackager(makeConfig(server))
+	err := pkg.Run(urlutil.MustParse("https://example.org/hello.html"), date)
+
+	// err should indicate all invalid subresources.
+	verifyErrorURLs(t, err, []string{
+		"https://example.org/nonexistent1.css",
+		"https://example.org/nonexistent2.css",
+	})
+
+	// Exchanges are still produced for valid resources. The exchange for
+	// the main resource contains preload directives only for valid subresources
+	// with allowed-alt-sxg.
+	verifyExchange(t, pkg, "https://example.org/hello.html", date, fmt.Sprint(
+		`<https://example.org/valid.css>;rel="allowed-alt-sxg";`+
+			`header-integrity="sha256-+Xd20Pyxhd3oSvNo2ucj9gdj7ZkHavIaDGkucYF76J8=",`,
+		`<https://example.org/valid.css>;rel="preload";as="style"`))
+	verifyExchange(t, pkg, "https://example.org/valid.css", date, "")
+}
+
+func TestSubresourceErrorsKeepPreloads(t *testing.T) {
+	handlers := http.NewServeMux()
+	handlers.Handle(
+		"example.org/hello.html",
+		stubHTMLHandler(`<!doctype html>`+
+			`<link href="valid.css" rel="stylesheet">`+
+			`<link href="nonexistent1.css" rel="stylesheet">`+
+			`<link href="nonexistent2.css" rel="stylesheet">`+
+			`<p>Hello, world!</p>`),
+	)
+	handlers.Handle(
+		"example.org/valid.css",
+		stubTextHandler(`body { font-family: sans-serif; }`, "text/css"),
+	)
+	server := httptest.NewTLSServer(handlers)
+	defer server.Close()
+
+	cfg := makeConfig(server)
+	cfg.ExchangeFactory.Get().KeepNonSXGPreloads = true
+	pkg := webpackager.NewPackager(cfg)
 	err := pkg.Run(urlutil.MustParse("https://example.org/hello.html"), date)
 
 	// err should indicate all invalid subresources.

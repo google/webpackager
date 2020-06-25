@@ -84,7 +84,7 @@ func (resp *Response) AddPreload(p *preload.Preload) bool {
 // GetFullHeader returns a new http.Header containing all header items
 // from resp.Header and resp.Preloads. GetFullHeader makes a deep copy of
 // resp.Header, thus does not mutate it.
-func (resp *Response) GetFullHeader() http.Header {
+func (resp *Response) GetFullHeader(keepNonSXGPreloads bool) http.Header {
 	header := make(http.Header)
 
 	for key, val := range resp.Header {
@@ -93,12 +93,16 @@ func (resp *Response) GetFullHeader() http.Header {
 	}
 
 	for _, p := range resp.Preloads {
+		containsAltSXG := false
 		for _, r := range p.Resources {
 			if r.Integrity != "" {
+				containsAltSXG = true
 				header.Add(linkHeader, r.AllowedAltSXGHeader())
 			}
 		}
-		header.Add(linkHeader, p.Link.String())
+		if containsAltSXG || keepNonSXGPreloads {
+			header.Add(linkHeader, p.Link.String())
+		}
 	}
 
 	return header

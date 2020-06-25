@@ -26,10 +26,10 @@ import (
 
 	"github.com/WICG/webpackage/go/signedexchange/version"
 	"github.com/google/webpackager"
+	"github.com/google/webpackager/certchain/certchainutil"
 	"github.com/google/webpackager/exchange"
 	"github.com/google/webpackager/exchange/vprule"
 	"github.com/google/webpackager/fetch"
-	"github.com/google/webpackager/internal/certutil"
 	"github.com/google/webpackager/internal/customflag"
 	"github.com/google/webpackager/processor"
 	"github.com/google/webpackager/processor/complexproc"
@@ -288,10 +288,10 @@ func getExchangeFactoryFromFlags() (*exchange.Factory, error) {
 
 	var certChainSource string
 	if *flagCertCBOR != "" {
-		fty.CertChain, err = certutil.ReadCertChainFile(*flagCertCBOR)
+		fty.CertChain, err = certchainutil.ReadAugmentedChainFile(*flagCertCBOR)
 		certChainSource = *flagCertCBOR
 	} else if fty.CertURL != nil {
-		fty.CertChain, err = certutil.FetchCertChain(fty.CertURL)
+		fty.CertChain, err = certchainutil.FetchAugmentedChain(fty.CertURL)
 		certChainSource = fty.CertURL.String()
 	}
 	if err != nil {
@@ -301,7 +301,7 @@ func getExchangeFactoryFromFlags() (*exchange.Factory, error) {
 	if *flagPrivateKey == "" {
 		errs = multierror.Append(errs, errors.New("missing --private_key"))
 	} else {
-		fty.PrivateKey, err = certutil.ReadPrivateKeyFile(*flagPrivateKey)
+		fty.PrivateKey, err = certchainutil.ReadPrivateKeyFile(*flagPrivateKey)
 		if err != nil {
 			errs = multierror.Append(errs, fmt.Errorf("failed to load private key from %q: %v", *flagPrivateKey, err))
 		}
