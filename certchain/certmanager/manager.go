@@ -15,6 +15,7 @@
 package certmanager
 
 import (
+	"errors"
 	"log"
 	"sync"
 
@@ -53,8 +54,17 @@ type Producer interface {
 	Stop()
 }
 
+// ErrNotFound is returned by Read if it is unable to find the AugmentedChain
+// using the provided digest.
+var ErrNotFound = errors.New("certmanager: no certificate chain found for the specified digest")
+
 // Cache represents a storage to cache an AugmentedChain.
 type Cache interface {
+	// Read returns an AugmentedChain with the provided digest. If it cannot
+	// find such an AugmentedChain, it returns ErrNotFound.
+	Read(digest string) (*certchain.AugmentedChain, error)
+
+	// Write writes the AugmentedChain into the Cache.
 	Write(ac *certchain.AugmentedChain) error
 }
 
@@ -64,7 +74,7 @@ type Manager struct {
 	dataMu   sync.RWMutex
 	data     *certchain.AugmentedChain
 	producer Producer
-	cache    Cache
+	Cache    Cache
 	killer   *chanutil.Killer
 }
 
@@ -80,7 +90,7 @@ func NewManager(c Config) *Manager {
 		cache = NullCache
 	}
 
-	return &Manager{producer: producer, cache: cache}
+	return &Manager{producer: producer, Cache: cache}
 }
 
 // Start starts managing the certificate. It starts Producer and waits for
@@ -119,7 +129,7 @@ func (m *Manager) daemon() {
 }
 
 func (m *Manager) onReceive(ac *certchain.AugmentedChain) {
-	if err := m.cache.Write(ac); err != nil {
+	if err := m.Cache.Write(ac); err != nil {
 		log.Printf("cannot cache the latest AugmentedChain: %v", err)
 	}
 }

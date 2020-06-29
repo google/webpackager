@@ -16,7 +16,6 @@ package certmanager_test
 
 import (
 	"testing"
-	"time"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/webpackager/certchain/certmanager"
@@ -45,16 +44,15 @@ func TestManager(t *testing.T) {
 	{
 		t.Log("Started with augm0409")
 
-		select {
-		case got := <-cache.OnWrite:
-			if diff := cmp.Diff(augm0409, got, certComparer); diff != "" {
-				t.Errorf("cache mismatch (-want +got):\n%s", diff)
-			}
-		case <-time.After(defaultTimeout):
-			t.Error("cache timeout")
+		if cache.WaitForAvail(defaultTimeout) != waitSuccess {
+			t.Error("timed out waiting for cache avail\n")
+		}
+		got, _ := m.Cache.Read(augm0409.Digest)
+		if diff := cmp.Diff(augm0409, got, certComparer); diff != "" {
+			t.Errorf("cache mismatch (-want +got):\n%s", diff)
 		}
 
-		got := m.GetAugmentedChain()
+		got = m.GetAugmentedChain()
 		if diff := cmp.Diff(augm0409, got, certComparer); diff != "" {
 			t.Errorf("m.GetAugmentedChain() mismatch (-want +got):\n%s", diff)
 		}
@@ -64,16 +62,15 @@ func TestManager(t *testing.T) {
 	{
 		t.Log("Updated to augm0413")
 
-		select {
-		case got := <-cache.OnWrite:
-			if diff := cmp.Diff(augm0413, got, certComparer); diff != "" {
-				t.Errorf("cache mismatch (-want +got):\n%s", diff)
-			}
-		case <-time.After(defaultTimeout):
-			t.Error("cache timeout")
+		if cache.WaitForAvail(defaultTimeout) != waitSuccess {
+			t.Error("timed out waiting for cache avail\n")
+		}
+		got, _ := m.Cache.Read(augm0413.Digest)
+		if diff := cmp.Diff(augm0413, got, certComparer); diff != "" {
+			t.Errorf("cache mismatch (-want +got):\n%s", diff)
 		}
 
-		got := m.GetAugmentedChain()
+		got = m.GetAugmentedChain()
 		if diff := cmp.Diff(augm0413, got, certComparer); diff != "" {
 			t.Errorf("m.GetAugmentedChain() mismatch (-want +got):\n%s", diff)
 		}
@@ -83,16 +80,15 @@ func TestManager(t *testing.T) {
 	{
 		t.Log("Updated to augm0415")
 
-		select {
-		case got := <-cache.OnWrite:
-			if diff := cmp.Diff(augm0415, got, certComparer); diff != "" {
-				t.Errorf("cache mismatch (-want +got):\n%s", diff)
-			}
-		case <-time.After(defaultTimeout):
-			t.Error("cache timeout")
+		if cache.WaitForAvail(defaultTimeout) != waitSuccess {
+			t.Error("timed out waiting for cache avail\n")
+		}
+		got, _ := m.Cache.Read(augm0415.Digest)
+		if diff := cmp.Diff(augm0415, got, certComparer); diff != "" {
+			t.Errorf("cache mismatch (-want +got):\n%s", diff)
 		}
 
-		got := m.GetAugmentedChain()
+		got = m.GetAugmentedChain()
 		if diff := cmp.Diff(augm0415, got, certComparer); diff != "" {
 			t.Errorf("m.GetAugmentedChain() mismatch (-want +got):\n%s", diff)
 		}

@@ -89,20 +89,45 @@ func (p *stubProducer) Stop() { close(p.out) }
 
 //------------------------
 //  stubCache
+// TODO(banaag): remove this and replace with in-memory cache.
 
 var _ certmanager.Cache = (*stubCache)(nil)
 
 type stubCache struct {
-	OnWrite chan *certchain.AugmentedChain
+	avail    chan struct{}
+	chainMap map[string]*certchain.AugmentedChain
 }
 
 func newStubCache() *stubCache {
-	return &stubCache{make(chan *certchain.AugmentedChain, 1)}
+	return &stubCache{
+		make(chan struct{}, 1),
+		make(map[string]*certchain.AugmentedChain),
+	}
+}
+
+func (c *stubCache) Read(digest string) (*certchain.AugmentedChain, error) {
+	if _, ok := c.chainMap[digest]; !ok {
+		return nil, certmanager.ErrNotFound
+	}
+	return c.chainMap[digest], nil
 }
 
 func (c *stubCache) Write(ac *certchain.AugmentedChain) error {
-	c.OnWrite <- ac
+	c.chainMap[ac.Digest] = ac
+	c.avail <- struct{}{}
 	return nil
+}
+
+func (c *stubCache) WaitForAvail(timeout time.Duration) waitResult {
+	select {
+	case _, ok := <-c.avail:
+		if !ok {
+			return waitCanceled
+		}
+		return waitSuccess
+	case <-time.After(timeout):
+		return waitTimeout
+	}
 }
 
 //------------------------

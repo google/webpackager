@@ -49,6 +49,7 @@ func setupServer(www *httptest.Server) (*server.Server, string) {
 	certManager := certmanager.NewManager(certmanager.Config{
 		RawChainSource: &stubRawChainSource{ac.RawChain},
 		OCSPRespSource: &stubOCSPRespSource{ac.OCSPResp},
+		Cache:          newStubCache(),
 	})
 
 	s := server.NewServer(new(http.Server), server.Config{

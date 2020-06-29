@@ -89,7 +89,7 @@ func TestDiskCache(t *testing.T) {
 	reader := func(id int) {
 		defer wg.Done()
 
-		ac, err := d.Read()
+		ac, err := d.Read("")
 		if err != nil {
 			t.Errorf("reader #%v: error with d.Read(): %v", id, err)
 			return

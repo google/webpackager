@@ -109,14 +109,17 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 }
 
 func (h *Handler) handleCert(w http.ResponseWriter, req *http.Request) {
-	ac := h.CertManager.GetAugmentedChain()
-
-	// TODO(yuizumi): Keep the previous AugmentedChains for a while; serve
-	// them when requested (through past signed exchanges).
-	if req.URL.Path != path.Join(h.CertPath, ac.Digest) {
+	digest := strings.TrimPrefix(req.URL.Path, h.CertPath+"/")
+	ac, err := h.CertManager.Cache.Read(digest)
+	if err == certmanager.ErrNotFound {
 		replyError(w, http.StatusNotFound)
 		return
 	}
+	if err != nil {
+		replyServerError(w, xerrors.Errorf("unable to read cert from cache: %w", err))
+		return
+	}
+
 	var body bytes.Buffer
 	if err := ac.WriteCBOR(&body); err != nil {
 		replyServerError(w, xerrors.Errorf("serializing cert-chain: %w", err))
