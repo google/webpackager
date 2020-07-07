@@ -1,8 +1,6 @@
 # This is sample config for Web Packager HTTP Server (webpkgserver).
 # Commented out lines show the default value for each parameter.
 
-# TODO(banaag): Add the section for ACME support.
-
 [Listen]
   # The bind address. If it is empty or unspecified, webpkgserver will accept
   # requests on any address (equivalent to "0.0.0.0").
@@ -201,6 +199,89 @@
   # If the certificate is missing an OCSP URL, webpkgserver substitutes dummy
   # bytes for the OCSP response.
   #AllowTestCert = false
+
+# IMPORTANT NOTE: the support of the ACME protocol and automatic renewal of
+# certificates is currently in the EXPERIMENTAL stage.  Once we have more
+# experience with people using it out in the wild, we will gradually move it to
+# the PRODUCTION stage.
+#
+# Configure ACME, which allows the webpkgserver to automatically renew Signed
+# Exchange certificates.
+#
+# ACME is a protocol that allows automatic certificate renewal. Setting the
+# Enable parameter to true will make webpkgserver automatically request a
+# renewed certificate whenever it has determined that the current certificate
+# is expired or about to expire.
+#
+# If you set up more than one instance of webpkgserver, the recommended practice
+# is to have only one instance handle automatic certificate renewals and let
+# other instances reload the fresh certificate from the disk. It allows
+# certificates to be shared on all webpkgserver instances (which may help
+# minimize the monetary cost, subject to Terms of Service set by your
+# Certificate Authority) and prevents webpkgserver from bombarding your
+# Certificate Authority with certificate requests.
+#
+# webpkgserver uses the ACME library from github.com/go-acme/lego.
+# 
+# For the full ACME spec, see:
+#   https://tools.ietf.org/html/rfc8555 
+[SXG.ACME]
+  # Enable webpkgserver to attempt to auto renew certificates using ACME.
+  #Enable = false 
+
+  # The ACME discovery URL. It is specified by the Certificate Authority that
+  # doles out your certificates. As of August 2020, only DigiCert supports
+  # automatic renewals of signed exchange certificate:
+  # https://docs.digicert.com/certificate-tools/acme-user-guide/acme-directory-urls-signed-http-exchange-certificates/
+  # Required when ACME is enabled.
+  DiscoveryURL = '<Your Discovery URL>'
+
+  # The email address registered to the Certificate Authority for your signed
+  # exchange certificates.
+  # Required when ACME is enabled.
+  Email = 'user@example.com'
+
+  # For the remaining configuration items, it is important to understand the
+  # different challenges employed as part of the ACME protocol:
+  # https://ietf-wg-acme.github.io/acme/draft-ietf-acme-acme.html#identifier-validation-challenges
+  # https://letsencrypt.org/docs/challenge-types/
+  # https://certbot.eff.org/docs/challenges.html/
+  #
+  # Note that you do not need to set the fields for all of these challenges. It
+  # is typically sufficient to have a setting for just one of the challenges. If
+  # more than one method is configured, the go-acme/lego library will decide
+  # pick one of them for primary use and use other settings as backup. For
+  # wildcard certificates, nevertheless, DNSProvider is the only supported
+  # method of validation, and others cannot be used. See DNSProvider for more
+  # detail.
+
+  # The http server root directory where the ACME http challenge token should
+  # be deposited. 
+  HTTPWebRootDir = '/path/to/www_root_dir'
+
+  # The port used by the webpkgserver to respond to the HTTP challenge
+  # issued as part of ACME protocol. You will need to configure your
+  # reverse-proxy server where you route the challenge requests to this port
+  # using proxy_pass on NGINX or a similar mechanism on the server of your
+  # choice. An example specific to NGINX:
+  # https://medium.com/@dipeshwagle/add-https-using-lets-encrypt-to-nginx-configured-as-a-reverse-proxy-on-ubuntu-b4455a729176
+  HTTPChallengePort = 5002
+
+  # The port used by webpkgserver to respond to the TLS challenge issued as part
+  # of the ACME protocol.
+  TLSChallengePort = 5003
+
+  # The DNS Provider to be used for fulfilling the ACME DNS challenge.
+  # For the DNS challenge, you need to set certain environment variables
+  # which depend on the DNS provider that you use to fulfill the DNS challenge:
+  # https://go-acme.github.io/lego/dns/
+  # To use DNSProvider, you need to build webpkgserver with
+  # `go build -tags dns01`; it is disabled by default because it bloats the
+  # binary.
+  #
+  # Note that you only need the DNS challenge setup if you have wildcard
+  # certificates: https://en.wikipedia.org/wiki/Wildcard_certificate
+  #DNSProvider = '' 
 
 # Specify the range of URLs webpkgserver can fetch the contents from and
 # produce the signed exchanges of. You can specify as many [[Sign]] configs

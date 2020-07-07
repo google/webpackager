@@ -62,6 +62,7 @@ type SXGConfig struct {
 	ValidityURL        string `default:"/webpkg/validity"`
 	KeepNonSXGPreloads bool
 	Cert               SXGCertConfig
+	ACME               SXGACMEConfig
 }
 
 // SXGCertConfig represents the [SXG.Cert] section.
@@ -70,6 +71,17 @@ type SXGCertConfig struct {
 	KeyFile       string
 	CacheDir      string
 	AllowTestCert bool
+}
+
+// SXGACMEConfig represents the [SXG.ACME] section.
+type SXGACMEConfig struct {
+	Enable            bool
+	DiscoveryURL      string
+	Email             string
+	HTTPChallengePort int
+	HTTPWebRootDir    string
+	TLSChallengePort  int
+	DNSProvider       string
 }
 
 // SignConfig represents the [[Sign]] sections.
