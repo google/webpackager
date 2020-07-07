@@ -23,6 +23,10 @@ var NullCache Cache = &nullCache{}
 
 type nullCache struct{}
 
+func (*nullCache) Read(digest string) (*certchain.AugmentedChain, error) {
+	return nil, ErrNotFound
+}
+
 func (*nullCache) Write(ac *certchain.AugmentedChain) error {
 	return nil
 }

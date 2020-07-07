@@ -63,9 +63,12 @@ func NewDiskCache(config DiskCacheConfig) *DiskCache {
 // d.OCSPPath are both non-empty and otherwise returns an error. Read returns
 // a multierror.Error (hashicorp/go-multierror) to report as many problems as
 // possible.
-func (d *DiskCache) Read() (*certchain.AugmentedChain, error) {
+func (d *DiskCache) Read(digest string) (*certchain.AugmentedChain, error) {
 	var errs *multierror.Error
 
+	// TODO(banaag): digest is currently unused and the behavior of the
+	// DiskCache continues to be for a single cert. Need to use digest here
+	// after initial PR review is complete.
 	if d.CertPath == "" {
 		errs = multierror.Append(errs, errEmptyCertPath)
 	}
