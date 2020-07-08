@@ -30,17 +30,17 @@ var (
 	errEmptyOCSPPath = errors.New("certmanager: empty OCSPPath")
 )
 
-// DiskCache is a Cache on a local filesystem. It writes the certificate chain
-// in the PEM format and the OCSP response in the DER format to separate files
-// as specified by DiskCacheConfig.
-type DiskCache struct {
-	DiskCacheConfig
+// SingleCertDiskCache is a Cache on a local filesystem. It writes the
+// certificate chain in the PEM format and the OCSP response in the DER format
+// to separate files as specified by SingleCertDiskCacheConfig.
+type SingleCertDiskCache struct {
+	SingleCertDiskCacheConfig
 }
 
-var _ Cache = (*DiskCache)(nil)
+var _ Cache = (*SingleCertDiskCache)(nil)
 
-// DiskCacheConfig configures DiskCache.
-type DiskCacheConfig struct {
+// SingleCertDiskCacheConfig configures SingleCertDiskCache.
+type SingleCertDiskCacheConfig struct {
 	// CertPath locates the PEM file to write the certificate chain to.
 	// If CertPath is empty, the certificate chain is not cached.
 	CertPath string
@@ -53,22 +53,15 @@ type DiskCacheConfig struct {
 	LockPath string
 }
 
-// NewDiskCache creates and initializes a new DiskCache.
-func NewDiskCache(config DiskCacheConfig) *DiskCache {
-	return &DiskCache{config}
+// NewSingleCertDiskCache creates and initializes a new SingleCertDiskCache.
+func NewSingleCertDiskCache(config SingleCertDiskCacheConfig) *SingleCertDiskCache {
+	return &SingleCertDiskCache{config}
 }
 
-// Read reads the certificate chain and the OCSP response from local files
-// and reproduces an AugmentedChain. Read works only when d.CertPath and
-// d.OCSPPath are both non-empty and otherwise returns an error. Read returns
-// a multierror.Error (hashicorp/go-multierror) to report as many problems as
-// possible.
-func (d *DiskCache) Read(digest string) (*certchain.AugmentedChain, error) {
+// ReadLatest returns the cached AugmentedChain, otherwise it returns an error.
+func (d *SingleCertDiskCache) ReadLatest() (*certchain.AugmentedChain, error) {
 	var errs *multierror.Error
 
-	// TODO(banaag): digest is currently unused and the behavior of the
-	// DiskCache continues to be for a single cert. Need to use digest here
-	// after initial PR review is complete.
 	if d.CertPath == "" {
 		errs = multierror.Append(errs, errEmptyCertPath)
 	}
@@ -101,10 +94,28 @@ func (d *DiskCache) Read(digest string) (*certchain.AugmentedChain, error) {
 	return augChain, errs.ErrorOrNil()
 }
 
+// Read reads the certificate chain and the OCSP response from local files
+// and reproduces an AugmentedChain. Read works only when d.CertPath and
+// d.OCSPPath are both non-empty and otherwise returns an error. Read returns
+// a multierror.Error (hashicorp/go-multierror) to report as many problems as
+// possible.
+func (d *SingleCertDiskCache) Read(digest string) (*certchain.AugmentedChain, error) {
+	// For single cert implementation, digest is not used in reading, just for
+	// verification.
+	latest, err := d.ReadLatest()
+	if err != nil {
+		return nil, err
+	}
+	if latest.Digest != digest {
+		return nil, ErrNotFound
+	}
+	return latest, nil
+}
+
 // Write writes the certificate chain and the OCSP response from ac into local
 // files. It returns a multierror.Error (hashicorp/go-multierror) to report as
 // many problems as possible.
-func (d *DiskCache) Write(ac *certchain.AugmentedChain) error {
+func (d *SingleCertDiskCache) Write(ac *certchain.AugmentedChain) error {
 	if d.CertPath == "" && d.OCSPPath == "" {
 		return nil
 	}
@@ -125,7 +136,7 @@ func (d *DiskCache) Write(ac *certchain.AugmentedChain) error {
 	return errs.ErrorOrNil()
 }
 
-func (d *DiskCache) writeCert(ac *certchain.AugmentedChain) error {
+func (d *SingleCertDiskCache) writeCert(ac *certchain.AugmentedChain) error {
 	if d.CertPath == "" {
 		return nil
 	}
@@ -138,7 +149,7 @@ func (d *DiskCache) writeCert(ac *certchain.AugmentedChain) error {
 	return renameio.WriteFile(d.CertPath, buf.Bytes(), 0600)
 }
 
-func (d *DiskCache) writeOCSP(ac *certchain.AugmentedChain) error {
+func (d *SingleCertDiskCache) writeOCSP(ac *certchain.AugmentedChain) error {
 	if d.OCSPPath == "" {
 		return nil
 	}

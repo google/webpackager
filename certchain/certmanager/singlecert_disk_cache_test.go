@@ -58,7 +58,7 @@ func TestDiskCache(t *testing.T) {
 	ocspPath := filepath.Join(tempDir, "ocsp.der")
 	lockPath := filepath.Join(tempDir, ".lock")
 
-	d := certmanager.NewDiskCache(certmanager.DiskCacheConfig{
+	d := certmanager.NewSingleCertDiskCache(certmanager.SingleCertDiskCacheConfig{
 		CertPath: certPath,
 		OCSPPath: ocspPath,
 		LockPath: lockPath,
@@ -89,7 +89,7 @@ func TestDiskCache(t *testing.T) {
 	reader := func(id int) {
 		defer wg.Done()
 
-		ac, err := d.Read("")
+		ac, err := d.ReadLatest()
 		if err != nil {
 			t.Errorf("reader #%v: error with d.Read(): %v", id, err)
 			return

@@ -112,6 +112,11 @@ func (c *stubCache) Read(digest string) (*certchain.AugmentedChain, error) {
 	return c.chainMap[digest], nil
 }
 
+func (c *stubCache) ReadLatest() (*certchain.AugmentedChain, error) {
+	// TODO(banaag): Add support once we have in-memory cache.
+	return nil, certmanager.ErrNotFound
+}
+
 func (c *stubCache) Write(ac *certchain.AugmentedChain) error {
 	c.chainMap[ac.Digest] = ac
 	c.avail <- struct{}{}
