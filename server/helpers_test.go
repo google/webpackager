@@ -76,6 +76,11 @@ func (c *stubCache) Read(digest string) (*certchain.AugmentedChain, error) {
 	return c.chainMap[digest], nil
 }
 
+func (c *stubCache) ReadLatest() (*certchain.AugmentedChain, error) {
+	// TODO(banaag): unsupported now, will support with in-memory cache PR.
+	return nil, certmanager.ErrNotFound
+}
+
 func (c *stubCache) Write(ac *certchain.AugmentedChain) error {
 	if ac == nil {
 		return errors.New("Write: nil augmented chain")

@@ -189,11 +189,15 @@ func makeCertManager(c *tomlconfig.Config) (*certmanager.Manager, error) {
 		if err != nil {
 			return nil, err
 		}
-		mc.Cache = certmanager.NewDiskCache(certmanager.DiskCacheConfig{
-			CertPath: filepath.Join(dir, "cert.pem"),
-			OCSPPath: filepath.Join(dir, "ocsp.der"),
-			LockPath: filepath.Join(dir, ".lock"),
+		mc.Cache, err = certmanager.NewMultiCertDiskCache(certmanager.MultiCertDiskCacheConfig{
+			CertDir:        dir,
+			LatestCertFile: "latest.pem",
+			LatestOCSPFile: "latest.ocsp",
+			LockFile:       ".lock",
 		})
+		if err != nil {
+			return nil, err
+		}
 	}
 	return certmanager.NewManager(mc), nil
 }

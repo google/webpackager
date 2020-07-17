@@ -64,6 +64,10 @@ type Cache interface {
 	// find such an AugmentedChain, it returns ErrNotFound.
 	Read(digest string) (*certchain.AugmentedChain, error)
 
+	// ReadLatest returns the latest version of the AugmentedChain. If it cannot
+	// find such an AugmentedChain, it returns ErrNotFound.
+	ReadLatest() (*certchain.AugmentedChain, error)
+
 	// Write writes the AugmentedChain into the Cache.
 	Write(ac *certchain.AugmentedChain) error
 }
