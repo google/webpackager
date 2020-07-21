@@ -36,6 +36,7 @@ import (
 )
 
 var fakeACMECert = certchaintest.MustReadRawChainFile("../../../testdata/certs/chain/fake_acme_cert.pem")
+var testCert = certchaintest.MustReadRawChainFile("../../../testdata/certs/chain/ecdsap256.pem")
 
 var fakeCSR = x509.CertificateRequest{
 	Subject: pkix.Name{
@@ -82,6 +83,20 @@ func TestFetchSuccess(t *testing.T) {
 		t.Fatalf("client.Fetch() = error(%q), want success", err)
 	}
 	if diff := cmp.Diff(fakeACMECert, chain); diff != "" {
+		t.Errorf("client.Fetch() mismatch (-want +got):\n%s", diff)
+	}
+
+	now = time.Date(2020, time.May, 1, 15, 0, 0, 0, time.UTC)
+	chain, nextRun, err = client.Fetch(testCert, func() time.Time { return now })
+
+	// nextRun must be valid even if (err != nil).
+	if _, ok := nextRun.(*futureevent.NeverOccursEvent); !ok {
+		t.Errorf("nextRun = %#v, want NeverOccursEvent", nextRun)
+	}
+	if err != nil {
+		t.Fatalf("client.Fetch() = error(%q), want success", err)
+	}
+	if diff := cmp.Diff(testCert, chain); diff != "" {
 		t.Errorf("client.Fetch() mismatch (-want +got):\n%s", diff)
 	}
 }
