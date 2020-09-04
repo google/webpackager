@@ -111,9 +111,11 @@ func (c *SXGConfig) verify() error {
 	if err := verifyURL(c.ValidityURL); err != nil {
 		errs = multierror.Append(errs, wrapError("ValidityURL", err))
 	}
-
 	if err := c.Cert.verify(); err != nil {
 		errs = multierror.Append(errs, wrapError("Cert", err))
+	}
+	if err := c.ACME.verify(); err != nil {
+		errs = multierror.Append(errs, wrapError("ACME", err))
 	}
 
 	return errs.ErrorOrNil()
@@ -127,6 +129,33 @@ func (c *SXGCertConfig) verify() error {
 	}
 	if c.KeyFile == "" {
 		errs = multierror.Append(errs, wrapError("KeyFile", errEmpty))
+	}
+
+	return errs.ErrorOrNil()
+}
+
+func (c *SXGACMEConfig) verify() error {
+	var errs *multierror.Error
+
+	if !c.Enable {
+		return nil
+	}
+
+	if c.DiscoveryURL == "" {
+		errs = multierror.Append(errs, wrapError("DiscoveryURL", errEmpty))
+	}
+	if err := verifyAbsoluteURL(c.DiscoveryURL); err != nil {
+		errs = multierror.Append(errs, wrapError("DiscoveryURL", err))
+	}
+	if c.Email == "" {
+		errs = multierror.Append(errs, wrapError("Email", errEmpty))
+	}
+
+	if c.HTTPWebRootDir == "" && c.HTTPChallengePort == 0 && c.TLSChallengePort == 0 && c.DNSProvider == "" {
+		errs = multierror.Append(errs, newError(
+			"HTTPWebRootDir, HTTPChallengePort, TLSChallengePort, DNSProvider",
+			"at least one of these parameters must be non-empty",
+		))
 	}
 
 	return errs.ErrorOrNil()
@@ -198,6 +227,21 @@ func verifyServePath(value string) error {
 	}
 
 	return nil
+}
+
+func verifyAbsoluteURL(value string) error {
+	if value == "" {
+		return errEmpty
+	}
+
+	u, err := url.Parse(value)
+	if err != nil {
+		return err
+	}
+	if u.Scheme != "https" {
+		return errors.New("must be https://")
+	}
+	return verifyServePath(u.Path)
 }
 
 func verifyURL(value string) error {
