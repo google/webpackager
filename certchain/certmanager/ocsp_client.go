@@ -107,23 +107,23 @@ func (c OCSPClient) Fetch(chain *certchain.RawChain, now func() time.Time) (ocsp
 
 	raw, expiry, err := c.fetch(chain)
 	if err != nil {
-		err = fmt.Errorf("cannot fetch OCSP response: %v", err)
+		err = fmt.Errorf("cannot fetch OCSP response: %v, retrying in %v", err, retryWait)
 		return nil, c.NewFutureEventAt(now().Add(retryWait)), err
 	}
 
 	ocspResp, err = certchain.ParseOCSPResponseForRawChain(raw, chain)
 	if err != nil {
-		err = fmt.Errorf("cannot parse OCSP response: %v", err)
+		err = fmt.Errorf("cannot parse OCSP response: %v, retrying in %v", err, retryWait)
 		return nil, c.NewFutureEventAt(now().Add(retryWait)), err
 	}
 
 	t := now()
 	if err := ocspResp.VerifyForRawChain(t, chain); err != nil {
-		err = fmt.Errorf("invalid OCSP response as of %v: %v", t, err)
+		err = fmt.Errorf("invalid OCSP response as of %v: %v, retrying in %v", t, err, retryWait)
 		return nil, c.NewFutureEventAt(t.Add(retryWait)), err
 	}
 	if err := ocspResp.VerifySXGCriteria(); err != nil {
-		err = fmt.Errorf("invalid OCSP response as of %v: %v", t, err)
+		err = fmt.Errorf("invalid OCSP response as of %v: %v, retrying in %v", t, err, retryWait)
 		return nil, c.NewFutureEventAt(t.Add(retryWait)), err
 	}
 

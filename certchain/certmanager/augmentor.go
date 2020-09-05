@@ -106,9 +106,24 @@ func (a *Augmentor) Start() error {
 	if err != nil {
 		return err
 	}
-	orNext, err := a.maintainOCSPResp()
-	if err != nil {
-		return err
+
+	var orNext futureevent.Event
+	retryCount := 0
+	const maxRetryCount = 3
+	for {
+		orNext, err = a.maintainOCSPResp()
+		retryCount++
+		if err == nil {
+			log.Println("Successfully retrieved valid OCSP.")
+			break
+		}
+		if retryCount >= maxRetryCount {
+			log.Println("Exceeded number of retries for OCSP.")
+			return err
+		}
+
+		log.Print(err)
+		<-orNext.Chan()
 	}
 
 	go a.daemon(rcNext, orNext)
@@ -130,12 +145,16 @@ func (a *Augmentor) daemon(rcNext, orNext futureevent.Event) {
 				orNext, err = a.maintainOCSPResp()
 				if err != nil {
 					log.Printf("cannot update the OCSP response: %v", err)
+				} else {
+					log.Printf("successfully updated OCSP response")
 				}
 			}
 		case <-orNext.Chan():
 			orNext, err = a.maintainOCSPResp()
 			if err != nil {
 				log.Printf("cannot update the OCSP response: %v", err)
+			} else {
+				log.Printf("successfully updated OCSP response")
 			}
 		case <-a.killer.C:
 			rcNext.Cancel()

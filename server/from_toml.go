@@ -16,12 +16,15 @@ package server
 
 import (
 	"crypto/tls"
+	"fmt"
 	"net"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strconv"
 	"time"
+
+	"github.com/google/webpackager/certchain/certmanager/acmeclient"
 
 	"github.com/google/webpackager"
 	"github.com/google/webpackager/certchain/certchainutil"
@@ -167,20 +170,50 @@ func makeExchangeFactory(c *tomlconfig.Config) (*ExchangeMetaFactory, error) {
 }
 
 func makeCertManager(c *tomlconfig.Config) (*certmanager.Manager, error) {
+	var rcs certmanager.RawChainSource
+
+	if c.SXG.ACME.Enable {
+		key, err := certchainutil.ReadPrivateKeyFile(c.SXG.Cert.KeyFile)
+		if err != nil {
+			return nil, err
+		}
+
+		csr, err := certchainutil.ReadCertificateRequestFile(c.SXG.ACME.CSRFile)
+		if err != nil {
+			return nil, err
+		}
+
+		rcs, err = acmeclient.NewClient(acmeclient.Config{
+			CertSignRequest:   csr,
+			User:              acmeclient.NewUser(c.SXG.ACME.Email, key),
+			DiscoveryURL:      c.SXG.ACME.DiscoveryURL,
+			HTTPChallengePort: c.SXG.ACME.HTTPChallengePort,
+			HTTPWebRootDir:    c.SXG.ACME.HTTPWebRootDir,
+			TLSChallengePort:  c.SXG.ACME.TLSChallengePort,
+			DNSProvider:       c.SXG.ACME.DNSProvider,
+			ShouldRegister:    true,
+			FetchTiming:       certmanager.FetchHourly,
+		})
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		rcs = certmanager.NewLocalCertFile(certmanager.LocalCertFileConfig{
+			Path:          c.SXG.Cert.PEMFile,
+			AllowTestCert: c.SXG.Cert.AllowTestCert,
+		})
+	}
+
 	mc := certmanager.Config{
-		RawChainSource: certmanager.NewLocalCertFile(
-			certmanager.LocalCertFileConfig{
-				Path:          c.SXG.Cert.PEMFile,
-				AllowTestCert: c.SXG.Cert.AllowTestCert,
-			},
-		),
+		RawChainSource: rcs,
 		OCSPRespSource: certmanager.NewOCSPClient(
 			certmanager.OCSPClientConfig{
 				AllowTestCert: c.SXG.Cert.AllowTestCert,
 			},
 		),
 	}
-	if c.SXG.Cert.CacheDir == "" {
+	if c.SXG.Cert.CacheDir != "" {
+		fmt.Printf("Creating SXG certificate cache directory: %s\n", c.SXG.Cert.CacheDir)
 		if err := os.MkdirAll(c.SXG.Cert.CacheDir, 0700); err != nil {
 			return nil, err
 		}

@@ -18,6 +18,8 @@ package certchainutil
 import (
 	"bytes"
 	"crypto"
+	"crypto/x509"
+	"encoding/pem"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -25,6 +27,7 @@ import (
 
 	"github.com/WICG/webpackage/go/signedexchange"
 	"github.com/google/webpackager/certchain"
+	"golang.org/x/xerrors"
 )
 
 // FetchAugmentedChain retrieves an AugmentedChain from url.
@@ -75,6 +78,24 @@ func ReadPrivateKeyFile(filename string) (crypto.PrivateKey, error) {
 		return nil, err
 	}
 	return signedexchange.ParsePrivateKey(pem)
+}
+
+// ReadCertificateRequestFile reads a PEM file and returns a Certificate
+// Request.
+func ReadCertificateRequestFile(filename string) (*x509.CertificateRequest, error) {
+	data, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return nil, xerrors.Errorf("reading certificate request: %w", err)
+	}
+	block, _ := pem.Decode(data)
+	if block == nil {
+		return nil, xerrors.Errorf("pem decode: no PEM data found in %s", filename)
+	}
+	csr, err := x509.ParseCertificateRequest(block.Bytes)
+	if err != nil {
+		return nil, xerrors.Errorf("parsing CSR %s: %w", filename, err)
+	}
+	return csr, nil
 }
 
 // WrapToCertFetcher wraps an AugmentedChain into a signedexchange.CertFetcher.

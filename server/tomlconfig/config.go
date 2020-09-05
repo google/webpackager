@@ -76,6 +76,7 @@ type SXGCertConfig struct {
 // SXGACMEConfig represents the [SXG.ACME] section.
 type SXGACMEConfig struct {
 	Enable            bool
+	CSRFile           string
 	DiscoveryURL      string
 	Email             string
 	HTTPChallengePort int
