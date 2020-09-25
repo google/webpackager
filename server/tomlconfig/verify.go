@@ -141,6 +141,9 @@ func (c *SXGACMEConfig) verify() error {
 		return nil
 	}
 
+	if c.CSRFile == "" {
+		errs = multierror.Append(errs, wrapError("CSRFile", errEmpty))
+	}
 	if c.DiscoveryURL == "" {
 		errs = multierror.Append(errs, wrapError("DiscoveryURL", errEmpty))
 	}

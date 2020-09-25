@@ -229,6 +229,10 @@
   # Enable webpkgserver to attempt to auto renew certificates using ACME.
   #Enable = false 
 
+  # The path to the Certificate Signing Request PEM file.
+  # Required when ACME is enabled.
+  CSRFile = "path/to/csr.pem"
+
   # The ACME discovery URL. It is specified by the Certificate Authority that
   # doles out your certificates. As of August 2020, only DigiCert supports
   # automatic renewals of signed exchange certificate:

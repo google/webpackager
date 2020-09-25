@@ -17,6 +17,7 @@ package certmanager
 import (
 	"bytes"
 	"errors"
+	"log"
 	"path"
 
 	"github.com/gofrs/flock"
@@ -158,6 +159,8 @@ func (d *MultiCertDiskCache) ReadLatest() (*certchain.AugmentedChain, error) {
 // many problems as possible.
 func (d *MultiCertDiskCache) Write(ac *certchain.AugmentedChain) error {
 	var errs *multierror.Error
+
+	log.Printf("Writing to cache in %s\n", d.CertDir)
 
 	lock := flock.New(path.Join(d.CertDir, d.LockFile))
 	errs = multierror.Append(errs, lock.Lock())
