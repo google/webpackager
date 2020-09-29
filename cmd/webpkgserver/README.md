@@ -4,7 +4,8 @@ Web Packager HTTP Server is an HTTP server built on top of Web Packager.
 It functions like a reverse-proxy, fetching documents from a backend server,
 then optimizing and signing them before returning them to requestors. This
 is similar to [AMP Packager][], but Web Packager targets all HTML documents
-except for AMP documents, whereas AMP Packager packages AMP documents.
+except for AMP documents, whereas AMP Packager packages AMP documents. It aims
+to meet the [requirements][] set by the Google SXG Cache.
 
 Currently, if you need to package [AMP][] documents into a signed exchange,
 it is recommended that you use [AMP Packager][] for that purpose and use
@@ -17,6 +18,7 @@ in the repository root.
 
 [AMP]: https://amp.dev/
 [AMP Packager]: https://github.com/ampproject/amppackager
+[requirements]: https://github.com/google/webpackager/blob/master/docs/cache_requirements.md
 [Web Packager]: https://github.com/google/webpackager
 
 ## Prerequisites
