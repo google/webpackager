@@ -24,8 +24,10 @@ The Google SXG cache sets these requirements in addition to the ones set by the
    the [Link spec][]:
    - Each `URI-Reference` must be an absolute URL that is `https` and
      same-origin with the signed `fallback URL`.
-   - Parameter names can only be `as`, `header-integrity`, `media`, or `rel`.
+   - Parameter names can only be `as`, `header-integrity`, `media`, `rel`,
+     `imagesrcset`, or `imagesizes`.
    - All `rel` parameters must be either `preload` or `allowed-alt-sxg`.
+   - All `imagesrcset` values must parse as a [srcset attribute](https://html.spec.whatwg.org/multipage/images.html#srcset-attribute).
    - There may be no more than 20 `rel=preload`s.
    - Every `rel=preload` must have a corresponding `rel=allowed-alt-sxg` with
      the same URI, which in turn must contain a `header-integrity` parameter
