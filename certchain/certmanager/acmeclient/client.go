@@ -203,16 +203,6 @@ func NewClient(config Config) (*Client, error) {
 			return nil, xerrors.Errorf("ACME CA client registration: %w", err)
 		}
 
-		// TODO(banaag): make sure we present the TOS URL to the user and
-		// prompt for confirmation.
-		// The plan is to move this to some separate setup command outside the
-		// server which would be executed one time. Alternatively, we can have
-		// a field in the toml file that is documented to indicate agreement
-		// with TOS.
-		reg, err := legoClient.Registration.Register(
-			registration.RegisterOptions{TermsOfServiceAgreed: true})
-		if err != nil {
-		}
 		config.User.SetRegistration(reg)
 	}
 
