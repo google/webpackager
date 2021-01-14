@@ -246,7 +246,7 @@
   Email = 'user@example.com'
 
   # The EABKid and EABHmac need to have synchronized values.  They can both be empty (in which case EAB is not used)
-  # or both have valid values. If one is empty and the other is not, the AMP Packager will generate an error.
+  # or both have valid values. If one is empty and the other is not, the Web Packager will generate an error.
   # This is the Key Identifier from ACME CA. Used for External Account Binding.
   #EABKid = "eab.kid"
 
