@@ -187,6 +187,8 @@ func makeCertManager(c *tomlconfig.Config) (*certmanager.Manager, error) {
 			CertSignRequest:   csr,
 			User:              acmeclient.NewUser(c.SXG.ACME.Email, key),
 			DiscoveryURL:      c.SXG.ACME.DiscoveryURL,
+			EABHmac:           c.SXG.ACME.EABHmac,
+			EABKid:            c.SXG.ACME.EABKid,
 			HTTPChallengePort: c.SXG.ACME.HTTPChallengePort,
 			HTTPWebRootDir:    c.SXG.ACME.HTTPWebRootDir,
 			TLSChallengePort:  c.SXG.ACME.TLSChallengePort,

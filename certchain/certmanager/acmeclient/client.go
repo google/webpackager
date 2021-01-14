@@ -84,6 +84,14 @@ type Config struct {
 	// Authority to make ACME requests.
 	DiscoveryURL string
 
+	// EABKid is the key identifier from ACME CA. Used for External Account
+	// Binding.
+	EABKid string
+
+	// EABHmac is the MAC Key from ACME CA. Used for External Account Binding.
+	// Should be in Base64 URL Encoding without padding format.
+	EABHmac string
+
 	// HTTPChallengePort is the HTTP challenge port used for the ACME HTTP
 	// challenge.
 	//
@@ -164,13 +172,37 @@ func NewClient(config Config) (*Client, error) {
 		}
 	}
 
-	// Theoretically, this should always be set to false as users should have
-	// pre-registered for access to the ACME CA and agreed to the Terms of
-	// Service.
-	// TODO(banaag): revisit this when trying the class out with DigiCert CA.
+	var reg *registration.Resource
 	if !config.ShouldRegister {
 		config.User.SetRegistration(new(registration.Resource))
+	} else if reg, err = legoClient.Registration.ResolveAccountByKey(); err == nil {
+		// Check if we already have an account.
+		config.User.Registration = reg
 	} else {
+		// We need to reset the LEGO client after calling Registration.ResolveAccountByKey().
+		legoClient, err = lego.NewClient(legoConfig)
+		if err != nil {
+			return nil, xerrors.Errorf("Obtaining LEGO client: %w", err)
+		}
+
+		// TODO(banaag) make sure we present the TOS URL to the user and prompt for confirmation.
+		// The plan is to move this to some separate setup command outside the server which would be
+		// executed one time. Alternatively, we can have a field in the toml file that is documented
+		// to indicate agreement with TOS.
+		if config.EABKid == "" && config.EABHmac == "" {
+			reg, err = legoClient.Registration.Register(registration.RegisterOptions{
+				TermsOfServiceAgreed: true})
+		} else {
+			reg, err = legoClient.Registration.RegisterWithExternalAccountBinding(registration.RegisterEABOptions{
+				TermsOfServiceAgreed: true,
+				Kid:                  config.EABKid,
+				HmacEncoded:          config.EABHmac})
+		}
+
+		if err != nil {
+			return nil, xerrors.Errorf("ACME CA client registration: %w", err)
+		}
+
 		// TODO(banaag): make sure we present the TOS URL to the user and
 		// prompt for confirmation.
 		// The plan is to move this to some separate setup command outside the
@@ -180,7 +212,6 @@ func NewClient(config Config) (*Client, error) {
 		reg, err := legoClient.Registration.Register(
 			registration.RegisterOptions{TermsOfServiceAgreed: true})
 		if err != nil {
-			return nil, xerrors.Errorf("ACME CA client registration: %w", err)
 		}
 		config.User.SetRegistration(reg)
 	}

@@ -245,6 +245,15 @@
   # Required when ACME is enabled.
   Email = 'user@example.com'
 
+  # The EABKid and EABHmac need to have synchronized values.  They can both be empty (in which case EAB is not used)
+  # or both have valid values. If one is empty and the other is not, the AMP Packager will generate an error.
+  # This is the Key Identifier from ACME CA. Used for External Account Binding.
+  #EABKid = "eab.kid"
+
+  # This is the MAC Key from ACME CA. Used for External Account Binding. Should be in
+  # Base64 URL Encoding without padding format.
+  #EABHmac = "eab.hmac"
+
   # For the remaining configuration items, it is important to understand the
   # different challenges employed as part of the ACME protocol:
   # https://ietf-wg-acme.github.io/acme/draft-ietf-acme-acme.html#identifier-validation-challenges
