@@ -79,6 +79,8 @@ type SXGACMEConfig struct {
 	CSRFile           string
 	DiscoveryURL      string
 	Email             string
+	EABKid            string
+	EABHmac           string
 	HTTPChallengePort int
 	HTTPWebRootDir    string
 	TLSChallengePort  int

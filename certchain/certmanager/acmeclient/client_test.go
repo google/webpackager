@@ -66,6 +66,7 @@ func TestFetchSuccess(t *testing.T) {
 		DiscoveryURL:      apiURL + "/dir",
 		HTTPChallengePort: getFreeTCPPort(t),
 		FetchTiming:       certmanager.FetchOnlyOnce(),
+		ShouldRegister:    false,
 	}
 	client, err := acmeclient.NewClient(config)
 	if err != nil {
@@ -121,6 +122,7 @@ func TestFetchFailure(t *testing.T) {
 		DiscoveryURL:      apiURL + "/dir",
 		HTTPChallengePort: getFreeTCPPort(t),
 		FetchTiming:       certmanager.FetchOnlyOnce(),
+		ShouldRegister:    false,
 	}
 	client, err := acmeclient.NewClient(config)
 	if err != nil {
