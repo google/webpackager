@@ -237,7 +237,7 @@ with q-scores. We therefore recommend matching on an Accept directive with
 the following regular expression:
 
     ```
-    Accept: /(^|,)\s*application\/signed-exchange\s*;\s*v=b3\s*(,|$)/
+    Accept: /(^|,)\s*application\/signed-exchange\s*;\s*v=[[:alnum:]_-]+\s*(,|$)/
     ```
 
 The `(,|$)` in that regex is important, as it indicates lack of a q
@@ -256,7 +256,7 @@ Here are details on how different web server setups handle accept headers:
 
     <Directory "/usr/local/apache2/htdocs/sxg_test/">
         RewriteEngine On
-        RewriteCond %{HTTP:Accept} (^|,)\s*application/signed-exchange\s*;\s*v=b3\s*(,|$)
+        RewriteCond %{HTTP:Accept} (^|,)\s*application/signed-exchange\s*;\s*v=[[:alnum:]_-]+\s*(,|$)
         RewriteRule .+ http://localhost:8080/priv/doc/https://www.example.com%{REQUEST_URI} [P]
 
         Header set X-Content-Type-Options: "nosniff"
@@ -275,7 +275,7 @@ Here are details on how different web server setups handle accept headers:
     regexes and scripts that parse `Accept` only approximately.
 
     ```
-    if ($http_accept ~* "(^|,)\s*application/signed-exchange\s*;\s*v=b3\s*(,|$)") {
+    if ($http_accept ~* "(^|,)\s*application/signed-exchange\s*;\s*v=[[:alnum:]_-]+\s*(,|$)") {
        /* do processing */
     }
     ```
