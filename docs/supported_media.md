@@ -87,7 +87,7 @@ version skew.
 
 ## Privacy considerations
 
-Allowing the referrer to do evaluate the `supported-media` server-side would
+Allowing the referrer to evaluate the `supported-media` server-side would
 reduce the number of bytes needed in the referring page, but would require
 browser support to send sufficient information. This would introduce another
 passive fingerprinting vector; this is at odds with efforts to limit
@@ -153,8 +153,9 @@ This creates a few risks:
 
   - Queries might evaluate incorrectly. Of the set of browsers for which a
     referrer provides caching, the referrer would need to keep track of which
-    media types/features each supports. This complexity is disproportionate to
-    the need.
+    media types/features each supports, in order not to [fail
+    closed](#fail-closed-on-malformed-media-queries). This complexity is
+    disproportionate to the need.
   - Queries might hurt user experience on the referring page. For instance,
     overly long queries may peg the CPU. (Or perhaps there are some
     expensive-to-compute features? These features might be safe to add to the
@@ -191,17 +192,21 @@ default](#assume-non-responsive-by-default) for why this is not preferred.
 
 #### Response header
 
-Referrers could look for a `supported-media` HTTP response header rather than
-(or in addition to) a `<meta>` tag. This has the advantage of supporting
-non-HTML referents, such as PDFs; however, those are rarely published in
-multiple form factors.
+Referrers could look for a `supported-media` HTTP response header rather than a
+`<meta>` tag. This has the advantage of supporting non-HTML referents, such as
+PDFs; however, those are rarely published in multiple form factors.
 
 It risks increased maintenance burden for publishers; HTML and HTTP teams often
 being different, there would be communication overhead in maintaining the
 proper mapping from page to appropriate response header.
 
-#### Variants
+Referrers could offer the HTTP header as an optional alternative serialization
+to the `<meta>` tag (i.e. allow either spelling). Lacking evidence of need, it
+seems safest to simplify to a single spelling for now. It is easier to add
+options later than to remove them.
 
+#### Variants
+a
 Referrers could look for a hypothetical `Variants` header such as:
 
 ```http
