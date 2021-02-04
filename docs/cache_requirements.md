@@ -79,3 +79,6 @@ Does not meet requirements:
 $ curl -s -i -H 'Accept: application/signed-exchange;v=b3' https://signed--exchange--testing-dev.webpkgcache.com/doc/-/s/signed-exchange-testing.dev/sxgs/invalid-signature-date.html | grep -a -i content-type:
 content-type: text/html; charset=UTF-8
 ```
+
+Note that new documents may appear not to meet the requirements at first; cache
+ingestion is asynchronous.
