@@ -41,6 +41,9 @@ The Google SXG cache sets these requirements in addition to the ones set by the
  - The signature's lifetime (`expires` minutes request time) must be >= 120
    seconds.
  - The SXG must be no larger than 8 megabytes.
+ - The page should be responsive, i.e. correct on all media. (In the future, a
+   [supported-media](supported_media.md) annotation should allow this
+   constraint to be removed.)
 
 [SXG spec]: https://wicg.github.io/webpackage/draft-yasskin-http-origin-signed-responses.html
 [`media-type` grammar]: https://tools.ietf.org/html/rfc7231#section-3.1.1.5
