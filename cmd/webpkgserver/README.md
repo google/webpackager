@@ -75,7 +75,6 @@ You can run Chrome with these command line flags to ignore certificate errors:
 ```bash
 --user-data-dir=/tmp/udd
 --ignore-certificate-errors-spki-list=$(openssl x509 -pubkey -noout -in path/to/YOUR_CERT_HERE.pem | openssl pkey -pubin -outform der | openssl dgst -sha256 -binary | base64)
---enable-features=SignedHTTPExchange
 'data:text/html,<a href="https://localhost:8080/priv/doc/https://YOUR_TEST_URL_HERE/">click me</a>'
 ```
 
