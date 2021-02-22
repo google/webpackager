@@ -32,6 +32,10 @@ const headerKey = "Link"
 // the Link HTTP headers when the response is turned into a signed exchange.
 var ExtractPreloadHeaders processor.Processor = &extractPreloadHeaders{}
 
+// maxNumPreloads is the maximum number of preload links allowed by WebPackager.
+// This exists to satisfy: https://github.com/google/webpackager/blob/master/docs/cache_requirements.md.
+const maxNumPreloads = 20
+
 type extractPreloadHeaders struct{}
 
 func (*extractPreloadHeaders) Process(resp *exchange.Response) error {
@@ -41,6 +45,7 @@ func (*extractPreloadHeaders) Process(resp *exchange.Response) error {
 	}
 	resp.Header.Del(headerKey)
 
+	numPreloads := 0
 	for _, value := range values {
 		links, err := httplink.Parse(value)
 		if err != nil {
@@ -49,8 +54,11 @@ func (*extractPreloadHeaders) Process(resp *exchange.Response) error {
 		}
 		for _, link := range links {
 			if link.IsPreload() {
-				link.URL = resp.Request.URL.ResolveReference(link.URL)
-				resp.AddPreload(preload.NewPreloadForLink(link))
+				if numPreloads < maxNumPreloads {
+					link.URL = resp.Request.URL.ResolveReference(link.URL)
+					resp.AddPreload(preload.NewPreloadForLink(link))
+					numPreloads++
+				}
 			} else {
 				resp.Header.Add(headerKey, link.String())
 			}
