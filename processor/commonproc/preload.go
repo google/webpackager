@@ -32,6 +32,11 @@ const headerKey = "Link"
 // the Link HTTP headers when the response is turned into a signed exchange.
 var ExtractPreloadHeaders processor.Processor = &extractPreloadHeaders{}
 
+// KeepNonPreloadLinkHeaders instruct the processor to include preload link
+// headers that don't have "preload" as the parameter.
+// TODO(banaag): put this in the TOML and propagate the config to the processor.
+var keepNonPreloadLinkHeaders = false
+
 // maxNumPreloads is the maximum number of preload links allowed by WebPackager.
 // This exists to satisfy: https://github.com/google/webpackager/blob/master/docs/cache_requirements.md.
 const maxNumPreloads = 20
@@ -59,7 +64,7 @@ func (*extractPreloadHeaders) Process(resp *exchange.Response) error {
 					resp.AddPreload(preload.NewPreloadForLink(link))
 					numPreloads++
 				}
-			} else {
+			} else if keepNonPreloadLinkHeaders {
 				resp.Header.Add(headerKey, link.String())
 			}
 		}

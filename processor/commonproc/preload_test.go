@@ -76,9 +76,6 @@ func TestExtractPreloadHeaders(t *testing.T) {
 			),
 			wantPreloads: nil,
 			wantHeader: http.Header{
-				"Link": []string{
-					`<https://example.com/>;rel="start"`,
-				},
 				"Content-Type": []string{"text/html; charset=utf-8"},
 			},
 		},
@@ -98,9 +95,6 @@ func TestExtractPreloadHeaders(t *testing.T) {
 				pl(`<https://example.com/photo.jpg>;rel="preload";as="image"`),
 			},
 			wantHeader: http.Header{
-				"Link": []string{
-					`<https://example.com/>;rel="start"`,
-				},
 				"Content-Type": []string{"text/html; charset=utf-8"},
 			},
 		},
@@ -121,9 +115,6 @@ func TestExtractPreloadHeaders(t *testing.T) {
 				pl(`<https://example.com/photo.jpg>;rel="preload";as="image"`),
 			},
 			wantHeader: http.Header{
-				"Link": []string{
-					`<https://example.com/>;rel="start"`,
-				},
 				"Content-Type": []string{"text/html; charset=utf-8"},
 			},
 		},
@@ -180,9 +171,6 @@ func TestExtractPreloadHeaders(t *testing.T) {
 				pl(`<https://example.com/photo20.jpg>;rel="preload";as="image"`),
 			},
 			wantHeader: http.Header{
-				"Link": []string{
-					`<https://example.com/>;rel="start"`,
-				},
 				"Content-Type": []string{"text/html; charset=utf-8"},
 			},
 		},
