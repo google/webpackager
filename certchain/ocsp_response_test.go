@@ -215,6 +215,13 @@ func TestOCSPResponseVerifyForRawChain_Dummy(t *testing.T) {
 	}
 }
 
+func TestOCSPResponseVerifyForOCSPDummy(t *testing.T) {
+	ocspResp := certchain.DummyOCSPResponse
+
+	if _, err := certchain.ParseOCSPResponse(ocspResp.Raw); err != nil {
+		t.Errorf("ParseOCSPResponse() = error(%q), want success", err)
+	}
+}
 func TestOCSPResponseVerifySXGCriteria_Success(t *testing.T) {
 	tests := []struct {
 		name     string
