@@ -53,6 +53,11 @@ var DummyOCSPResponse *OCSPResponse = &OCSPResponse{
 func ParseOCSPResponse(bytes []byte) (*OCSPResponse, error) {
 	resp, err := ocsp.ParseResponse(bytes, nil)
 	if err != nil {
+		if string(bytes) == string(DummyOCSPResponse.Raw) {
+			// This is necessary to serve a(n invalid) cert-chain+cbor in
+			// AllowTestCert mode.
+			return DummyOCSPResponse, nil
+		}
 		return nil, err
 	}
 	return &OCSPResponse{resp, bytes}, nil
