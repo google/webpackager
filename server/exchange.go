@@ -18,6 +18,7 @@ import (
 	"bytes"
 	"crypto"
 	"encoding/base64"
+	"fmt"
 	"net/url"
 	"path"
 
@@ -74,15 +75,14 @@ func NewExchangeMetaFactory(c ExchangeConfig) *ExchangeMetaFactory {
 
 // Get returns a new exchange.Factory set with the current AugmentedChain
 // from e.CertManager.
-func (e *ExchangeMetaFactory) Get() *exchange.Factory {
+func (e *ExchangeMetaFactory) Get() (*exchange.Factory, error) {
 	chain := e.CertManager.GetAugmentedChain()
 
 	var certURL *url.URL
 	if e.CertURLBase.Scheme == "data" {
 		var cbor bytes.Buffer
 		if err := chain.WriteCBOR(&cbor); err != nil {
-			// TODO: Don't panic.
-			panic(err)
+			return nil, fmt.Errorf("error creating data: cert-url: %w", err)
 		}
 		// The example in https://tools.ietf.org/html/rfc2397 has
 		// slashes, and the examples in
@@ -108,5 +108,5 @@ func (e *ExchangeMetaFactory) Get() *exchange.Factory {
 		PrivateKey:         e.PrivateKey,
 		KeepNonSXGPreloads: e.KeepNonSXGPreloads,
 	}
-	return exchange.NewFactory(config)
+	return exchange.NewFactory(config), nil
 }

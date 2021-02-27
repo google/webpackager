@@ -49,14 +49,18 @@ type packagerTaskRunner struct {
 	active     map[string]bool // Keyed by URLs.
 }
 
-func newTaskRunner(p *Packager, date time.Time) *packagerTaskRunner {
+func newTaskRunner(p *Packager, date time.Time) (*packagerTaskRunner, error) {
+	ef, err := p.ExchangeFactory.Get()
+	if err != nil {
+		return nil, fmt.Errorf("creating task runner: %w", err)
+	}
 	return &packagerTaskRunner{
 		p,
 		date,
-		p.ExchangeFactory.Get(),
+		ef,
 		new(multierror.Error),
 		make(map[string]bool),
-	}
+	}, nil
 }
 
 func (runner *packagerTaskRunner) err() error {

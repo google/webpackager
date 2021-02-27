@@ -92,8 +92,9 @@
   #     machine.
   #   - Otherwise, you can specify "data:" here, and webpkgserver
   #     will build data: cert-urls that are valid on http://localhost signed
-  #     exchanges. Note that data: cert-urls will not meet Google SXG cache
-  #     requirements.
+  #     exchanges. This will not work in production; these data: URLs will not
+  #     include an updated OCSP response, and otherwise do not meet Google SXG
+  #     cache requirements.
   #CertURLBase = '/webpkg/cert'
 
   # The validity-url of signed exchanges. webpkgserver sets the same URL to
