@@ -26,6 +26,7 @@ import (
 	"github.com/google/webpackager/exchange"
 	"github.com/google/webpackager/resource"
 	multierror "github.com/hashicorp/go-multierror"
+        "golang.org/x/xerrors"
 )
 
 var (
@@ -52,7 +53,7 @@ type packagerTaskRunner struct {
 func newTaskRunner(p *Packager, date time.Time) (*packagerTaskRunner, error) {
 	ef, err := p.ExchangeFactory.Get()
 	if err != nil {
-		return nil, fmt.Errorf("creating task runner: %w", err)
+		return nil, xerrors.Errorf("creating task runner: %w", err)
 	}
 	return &packagerTaskRunner{
 		p,

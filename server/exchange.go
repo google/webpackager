@@ -18,13 +18,13 @@ import (
 	"bytes"
 	"crypto"
 	"encoding/base64"
-	"fmt"
 	"net/url"
 	"path"
 
 	"github.com/WICG/webpackage/go/signedexchange/version"
 	"github.com/google/webpackager/certchain/certmanager"
 	"github.com/google/webpackager/exchange"
+        "golang.org/x/xerrors"
 )
 
 // ExchangeMetaFactory is an exchange.FactoryProvider designed to be used
@@ -82,7 +82,7 @@ func (e *ExchangeMetaFactory) Get() (*exchange.Factory, error) {
 	if e.CertURLBase.Scheme == "data" {
 		var cbor bytes.Buffer
 		if err := chain.WriteCBOR(&cbor); err != nil {
-			return nil, fmt.Errorf("error creating data: cert-url: %w", err)
+			return nil, xerrors.Errorf("error creating data: cert-url: %w", err)
 		}
 		// The example in https://tools.ietf.org/html/rfc2397 has
 		// slashes, and the examples in

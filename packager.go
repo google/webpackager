@@ -15,12 +15,12 @@
 package webpackager
 
 import (
-	"fmt"
 	"net/http"
 	"net/url"
 	"time"
 
 	"github.com/google/webpackager/resource"
+        "golang.org/x/xerrors"
 )
 
 // Packager implements the control flow of Web Packager.
@@ -65,7 +65,7 @@ func (pkg *Packager) Run(url *url.URL, sxgDate time.Time) error {
 func (pkg *Packager) RunForRequest(req *http.Request, sxgDate time.Time) error {
 	runner, err := newTaskRunner(pkg, sxgDate)
 	if err != nil {
-		return fmt.Errorf("packaging: %w", err)
+		return xerrors.Errorf("packaging: %w", err)
 	}
 	runner.run(nil, req, resource.NewResource(req.URL))
 	return runner.err()
