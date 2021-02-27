@@ -83,10 +83,17 @@
   #
   # Generally you want to set the same value as Listen.CertPath, but you can
   # set a different value if you want to serve the certificate on a single
-  # domain or plan to host the certificate on your own server. Another usage
-  # is local testing: you can specify "https://localhost:8080/webpkg/cert" to
-  # have the browser fetch the certificate directly from webpkgserver running
-  # on your machine (you also need to set up TLS; see Listen.TLS.*).
+  # domain or plan to host the certificate on your own server.
+  #
+  # For local testing:
+  #   - If you have specified TLS.PEMFile and TLS.KeyFile, then you can you can
+  #     specify "https://localhost:8080/webpkg/cert" here, to have the browser
+  #     fetch the certificate directly from webpkgserver running on your
+  #     machine.
+  #   - Otherwise, you can specify "data:" here, and webpkgserver
+  #     will build data: cert-urls that are valid on http://localhost signed
+  #     exchanges. Note that data: cert-urls will not meet Google SXG cache
+  #     requirements.
   #CertURLBase = '/webpkg/cert'
 
   # The validity-url of signed exchanges. webpkgserver sets the same URL to
