@@ -26,7 +26,7 @@ import (
 	"github.com/google/webpackager/exchange"
 	"github.com/google/webpackager/resource"
 	multierror "github.com/hashicorp/go-multierror"
-        "golang.org/x/xerrors"
+	"golang.org/x/xerrors"
 )
 
 var (

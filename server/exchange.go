@@ -24,7 +24,7 @@ import (
 	"github.com/WICG/webpackage/go/signedexchange/version"
 	"github.com/google/webpackager/certchain/certmanager"
 	"github.com/google/webpackager/exchange"
-        "golang.org/x/xerrors"
+	"golang.org/x/xerrors"
 )
 
 // ExchangeMetaFactory is an exchange.FactoryProvider designed to be used

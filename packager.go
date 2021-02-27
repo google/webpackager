@@ -20,7 +20,7 @@ import (
 	"time"
 
 	"github.com/google/webpackager/resource"
-        "golang.org/x/xerrors"
+	"golang.org/x/xerrors"
 )
 
 // Packager implements the control flow of Web Packager.
