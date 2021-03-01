@@ -187,7 +187,7 @@ The setup is similar to [AMP Packager][]:
 *   Determine if the request is for a signed exchange, based on the `Accept`
     header. See the [Content Negotiation](#content-negotiation) section for
     further details on how to do this.  If the request is for a signed
-    exchange rewrite the URL by prepending `/priv/doc/` and forward the
+    exchange, rewrite the URL by prepending `/priv/doc/` and forward the
     request. In NGINX the directive would look like:
 
     ```
