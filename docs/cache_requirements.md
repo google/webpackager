@@ -11,6 +11,7 @@ following requirements are met.
 The Google SXG cache sets these requirements in addition to the ones set by the
 [SXG spec][]:
  - The signed `fallback URL` must equal the URL at which the SXG was served.
+ - The signed `cert-url` must be `https`.
  - The signature header must contain only:
    - One parameterised identifier.
    - Parameter values of type string, binary, or identifier.

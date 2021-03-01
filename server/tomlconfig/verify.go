@@ -105,10 +105,10 @@ func (c *SXGConfig) verify() error {
 	if _, err := parseJSExpiry(c.JSExpiry); err != nil {
 		errs = multierror.Append(errs, wrapError("JSExpiry", err))
 	}
-	if err := verifyURL(c.CertURLBase); err != nil {
+	if err := verifyCertURL(c.CertURLBase); err != nil {
 		errs = multierror.Append(errs, wrapError("CertURLBase", err))
 	}
-	if err := verifyURL(c.ValidityURL); err != nil {
+	if err := verifyValidityURL(c.ValidityURL); err != nil {
 		errs = multierror.Append(errs, wrapError("ValidityURL", err))
 	}
 	if err := c.Cert.verify(); err != nil {
@@ -247,7 +247,10 @@ func verifyAbsoluteURL(value string) error {
 	return verifyServePath(u.Path)
 }
 
-func verifyURL(value string) error {
+const verifyValidityURLMessage string = "must be https:// URL or absolute path"
+const verifyCertURLMessage string = "must be https:// URL, data:, or absolute path"
+
+func verifyURLImpl(value, errMessage string) error {
 	if value == "" {
 		return errEmpty
 	}
@@ -259,15 +262,26 @@ func verifyURL(value string) error {
 	switch u.Scheme {
 	case "":
 		if u.Host != "" {
-			return errors.New("must be https:// or absolute path")
+			return errors.New(errMessage)
 		}
 		if !strings.HasPrefix(u.Path, "/") {
-			return errors.New("must be https:// or absolute path")
+			return errors.New(errMessage)
 		}
 		return verifyServePath(u.Path)
 	case "https":
 		return verifyServePath(u.Path)
 	default:
-		return errors.New("must be https:// or absolute path")
+		return errors.New(errMessage)
 	}
+}
+
+func verifyValidityURL(value string) error {
+	return verifyURLImpl(value, verifyValidityURLMessage)
+}
+
+func verifyCertURL(value string) error {
+	if value == "data:" {
+		return nil
+	}
+	return verifyURLImpl(value, verifyCertURLMessage)
 }

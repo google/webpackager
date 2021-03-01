@@ -90,7 +90,7 @@ func TestVerifyServePath_Error(t *testing.T) {
 	}
 }
 
-func TestVerifyURL(t *testing.T) {
+func TestVerifyValidityURL(t *testing.T) {
 	tests := []struct {
 		name string
 		url  string
@@ -115,14 +115,14 @@ func TestVerifyURL(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			if err := verifyURL(test.url); err != nil {
-				t.Errorf("verifyURL(%q) = error(%q), want success", test.url, err)
+			if err := verifyValidityURL(test.url); err != nil {
+				t.Errorf("verifyValidityURL(%q) = error(%q), want success", test.url, err)
 			}
 		})
 	}
 }
 
-func TestVerifyURL_Error(t *testing.T) {
+func TestVerifyValidityURL_Error(t *testing.T) {
 	tests := []struct {
 		name string
 		url  string
@@ -167,9 +167,16 @@ func TestVerifyURL_Error(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			if err := verifyURL(test.url); err == nil {
-				t.Errorf("verifyURL(%q) = success, want error", test.url)
+			if err := verifyValidityURL(test.url); err == nil {
+				t.Errorf("verifyValidityURL(%q) = success, want error", test.url)
 			}
 		})
+	}
+}
+
+func TestVerifyCertURL(t *testing.T) {
+	testURL := "data:"
+	if err := verifyCertURL(testURL); err != nil {
+		t.Errorf("verifyCertURL(%q) = error(%q), want success", testURL, err)
 	}
 }

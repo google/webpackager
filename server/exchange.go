@@ -15,13 +15,16 @@
 package server
 
 import (
+	"bytes"
 	"crypto"
+	"encoding/base64"
 	"net/url"
 	"path"
 
 	"github.com/WICG/webpackage/go/signedexchange/version"
 	"github.com/google/webpackager/certchain/certmanager"
 	"github.com/google/webpackager/exchange"
+	"golang.org/x/xerrors"
 )
 
 // ExchangeMetaFactory is an exchange.FactoryProvider designed to be used
@@ -72,20 +75,38 @@ func NewExchangeMetaFactory(c ExchangeConfig) *ExchangeMetaFactory {
 
 // Get returns a new exchange.Factory set with the current AugmentedChain
 // from e.CertManager.
-func (e *ExchangeMetaFactory) Get() *exchange.Factory {
+func (e *ExchangeMetaFactory) Get() (*exchange.Factory, error) {
 	chain := e.CertManager.GetAugmentedChain()
 
-	// Use path.Join so the last path element in e.CertURLBase is kept
-	// whether or not it has the trailing slash.
-	urlPath := path.Join(e.CertURLBase.Path, chain.Digest)
+	var certURL *url.URL
+	if e.CertURLBase.Scheme == "data" {
+		var cbor bytes.Buffer
+		if err := chain.WriteCBOR(&cbor); err != nil {
+			return nil, xerrors.Errorf("error creating data: cert-url: %w", err)
+		}
+		// The example in https://tools.ietf.org/html/rfc2397 has
+		// slashes, and the examples in
+		// https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/Data_URIs
+		// have padding chars, so I think we want StdEncoding.
+		encoded := base64.StdEncoding.EncodeToString(cbor.Bytes())
+		certURL = &url.URL{
+			Scheme: "data",
+			Opaque: "application/cert-chain+cbor;base64," + encoded,
+		}
+	} else {
+		// Use path.Join so the last path element in e.CertURLBase is kept
+		// whether or not it has the trailing slash.
+		urlPath := path.Join(e.CertURLBase.Path, chain.Digest)
+		certURL = e.CertURLBase.ResolveReference(&url.URL{Path: urlPath})
+	}
 
 	config := exchange.Config{
 		Version:            e.Version,
 		MIRecordSize:       e.MIRecordSize,
 		CertChain:          chain,
-		CertURL:            e.CertURLBase.ResolveReference(&url.URL{Path: urlPath}),
+		CertURL:            certURL,
 		PrivateKey:         e.PrivateKey,
 		KeepNonSXGPreloads: e.KeepNonSXGPreloads,
 	}
-	return exchange.NewFactory(config)
+	return exchange.NewFactory(config), nil
 }

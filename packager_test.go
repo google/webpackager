@@ -301,9 +301,13 @@ func TestSubresourceErrorsKeepPreloads(t *testing.T) {
 	defer server.Close()
 
 	cfg := makeConfig(server)
-	cfg.ExchangeFactory.Get().KeepNonSXGPreloads = true
+	ef, err := cfg.ExchangeFactory.Get()
+	if err != nil {
+		t.Errorf("ExchangeFactory.Get() = error(%q), want success", err)
+	}
+	ef.KeepNonSXGPreloads = true
 	pkg := webpackager.NewPackager(cfg)
-	err := pkg.Run(urlutil.MustParse("https://example.org/hello.html"), date)
+	err = pkg.Run(urlutil.MustParse("https://example.org/hello.html"), date)
 
 	// err should indicate all invalid subresources.
 	verifyErrorURLs(t, err, []string{

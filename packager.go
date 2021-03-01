@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/google/webpackager/resource"
+	"golang.org/x/xerrors"
 )
 
 // Packager implements the control flow of Web Packager.
@@ -62,7 +63,10 @@ func (pkg *Packager) Run(url *url.URL, sxgDate time.Time) error {
 // RunForRequest uses req directly: RequestTweaker mutates req; FetchClient
 // sends req to retrieve the HTTP response.
 func (pkg *Packager) RunForRequest(req *http.Request, sxgDate time.Time) error {
-	runner := newTaskRunner(pkg, sxgDate)
+	runner, err := newTaskRunner(pkg, sxgDate)
+	if err != nil {
+		return xerrors.Errorf("packaging: %w", err)
+	}
 	runner.run(nil, req, resource.NewResource(req.URL))
 	return runner.err()
 }

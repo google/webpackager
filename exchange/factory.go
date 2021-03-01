@@ -32,7 +32,7 @@ type Factory struct {
 
 // FactoryProvider provides Factory.
 type FactoryProvider interface {
-	Get() *Factory
+	Get() (*Factory, error)
 }
 
 // NewFactory creates and initializes a new Factory. It panics if c.CertChain
@@ -91,4 +91,4 @@ func (fty *Factory) Verify(e *signedexchange.Exchange, date time.Time) ([]byte, 
 
 // Get returns fty. It implements FactoryProvider and allows Factory to be
 // set directory to ExchangeFactory in webpackager.Config.
-func (fty *Factory) Get() *Factory { return fty }
+func (fty *Factory) Get() (*Factory, error) { return fty, nil }
