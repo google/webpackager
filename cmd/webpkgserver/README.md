@@ -184,7 +184,9 @@ The setup is similar to [AMP Packager][]:
     }
     ```
 
-*   If the request is requesting for a signed exchange rewrite the URL by
+*   Determine if the request is for a signed exchange, based on the `Accept`
+    header. See the Content Negotiation section for further details on how to
+    do this.  If the request for a signed exchange rewrite the URL by
     prepending `/priv/doc/` and forward the request. In NGINX the directive
     would look like:
 
@@ -214,9 +216,6 @@ The setup is similar to [AMP Packager][]:
 [misleading content]: https://wicg.github.io/webpackage/draft-yasskin-http-origin-signed-responses.html#section-6.1.2
 
 *   Every 90 days or sooner, renew your SXG cert and restart webpkgserver.
-
-*   Content negotiation setup should be based on the `Accept` header. See the
-    section on Content Negotiation for further details.
 
 ## Content Negotiation
 
