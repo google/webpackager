@@ -34,6 +34,7 @@ in the same character encoding as the page, less than 1024 characters, and
 containing only the below supported media types and features:
 
  - `all`
+ - `screen`
  - `hover`
  - `pointer`
  - the following, plus their `min-` and `max-` variants:

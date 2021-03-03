@@ -17,8 +17,12 @@ instruct caches to fetch multiple variants per page. Without this, caches could
 heuristically attempt to enumerate the variants through multiple fetches, but
 shouldn't; doing so would introduce unnecessary traffic. Hopefully other
 proposals such as
-[Variants](https://tools.ietf.org/html/draft-ietf-httpbis-variants-06) can
-address this eventually.
+[Variants](https://tools.ietf.org/html/draft-ietf-httpbis-variants-06) or
+[`<link rel=alternate
+media=...>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Link_types#content:~:text=Otherwise%2C%20the%20link%20defines%20an%20alternative,(if%20the%20media%20attribute%20is%20set))
+can address this eventually; note that the latter has some minimal [support by
+Google
+Search](https://developers.google.com/search/mobile-sites/mobile-seo/separate-urls#annotation-in-detail:~:text=The%20media%20attribute's%20value%20is%20a,typically%20used%20to%20target%20mobile%20devices.).
 
 Referrers need to evaluate the intersection of user-agent support and page
 support. Referrers with their own separate crawl can do so locally,
