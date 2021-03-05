@@ -5,7 +5,8 @@ It functions like a reverse-proxy, fetching documents from a backend server,
 then optimizing and signing them before returning them to requestors. This
 is similar to [AMP Packager][], but Web Packager targets all HTML documents
 except for AMP documents, whereas AMP Packager packages AMP documents. It aims
-to meet the [requirements][] set by the Google SXG Cache.
+to meet the [requirements][] set by the Google SXG Cache (but see
+[Limitations](#limitations)).
 
 Currently, if you need to package [AMP][] documents into a signed exchange,
 it is recommended that you use [AMP Packager][] for that purpose and use
@@ -288,9 +289,12 @@ Here are details on how different web server setups handle accept headers:
 
 ## Limitations
 
-Web Packager is currently at the alpha phase: it is not fully tested yet and
-must be used with caution in any production environment. Also we may make
-backward-breaking changes at any time.
+In this early phase, we may make backward-breaking changes to the config syntax.
+
+Web Packager aims to automatically meet most but not all [Google SXG Cache
+requirements](../../docs/cache_requirements.md). In particular, pages that do not use
+responsive design should specify a [`supported-media`
+annotation](../../docs/supported_media.md).
 
 Web Packager does not handle [request matching][] correctly. It should not
 matter unless your web server implements content negotiation using the

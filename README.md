@@ -68,9 +68,13 @@ instructions at:
 
 ## Limitations
 
-Web Packager is currently at the alpha phase: it is not fully tested yet and
-must be used with caution in any production environment. Also we may make
-backward-breaking changes at any time.
+In this early phase, we may make backward-breaking changes to the commandline
+or API.
+
+Web Packager aims to automatically meet most but not all [Google SXG Cache
+requirements](docs/cache_requirements.md). In particular, pages that do not use
+responsive design should specify a [`supported-media`
+annotation](docs/supported_media.md).
 
 Web Packager does not handle [request matching][] correctly. It should not
 matter unless your web server implements content negotiation using the
