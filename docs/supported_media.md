@@ -30,7 +30,7 @@ User agents should ignore this meta tag.
 A `<meta>` element, as a child of the document's `<head>` element, where its
 `name=` is "supported-media", and its `content=` is a well-formed [level 3
 media query list](https://www.w3.org/TR/2012/REC-css3-mediaqueries-20120619/)
-in the same character encoding as the page, less than 1024 characters, and
+in the same character encoding as the page, less than 200 characters, and
 containing only the below supported media types and features:
 
  - `all`
