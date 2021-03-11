@@ -23,8 +23,7 @@ The Google SXG cache sets these requirements in addition to the ones set by the
    [Loading spec][].
    Specifically, it must meet these requirements, in addition to the ones set by
    the [Link spec][]:
-   - Each `URI-Reference` must be an absolute URL that is `https` and
-     same-origin with the signed `fallback URL`.
+   - Each `URI-Reference` must be an absolute `https` URL.
    - Parameter names can only be `as`, `header-integrity`, `media`, `rel`,
      `imagesrcset`, or `imagesizes`.
    - All `rel` parameters must be either `preload` or `allowed-alt-sxg`.
