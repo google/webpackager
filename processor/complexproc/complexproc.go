@@ -57,7 +57,6 @@ var (
 	}
 	// EssentialPostprocessors contain always-run postprocessors.
 	EssentialPostprocessors = processor.SequentialProcessor{
-		commonproc.ApplySameOriginPolicy,
 		commonproc.ContentTypeProcessor,
 		commonproc.RemoveUncachedHeaders,
 	}
