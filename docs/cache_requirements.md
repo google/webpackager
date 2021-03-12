@@ -10,6 +10,9 @@ following requirements are met.
 
 The Google SXG cache sets these requirements in addition to the ones set by the
 [SXG spec][]:
+ - The SXG must have a freshness lifetime of at least 120 seconds, as [computed
+   for a shared cache](https://tools.ietf.org/html/rfc7234#section-4.2.1) from
+   its outer headers.
  - The signed `fallback URL` must equal the URL at which the SXG was served.
  - The signed `cert-url` must be `https`.
  - The signature header must contain only:
