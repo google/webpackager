@@ -13,7 +13,15 @@ The Google SXG cache sets these requirements in addition to the ones set by the
  - The SXG must have a freshness lifetime of at least 120 seconds, as [computed
    for a shared cache](https://tools.ietf.org/html/rfc7234#section-4.2.1) from
    its outer headers.
- - The signed `fallback URL` must equal the URL at which the SXG was served.
+ - The signed `fallback URL` must approximately equal the URL at which the SXG
+   was served. Where possible, aim to make them byte-equal. The set of allowed
+   differences is not precisely specified, but approximately:
+   - Characters may be substituted by their percent encodings, and vice versa,
+     with the exception of meaningful delimiters like `/`, `;`, `?`, `&`, and
+     `=`.
+   - Query parameters may be re-ordered.
+   - Valueless query parameters may be encoded with or without a trailing `=`.
+   - Extra `&`s in the query string are allowed.
  - The signed `cert-url` must be `https`.
  - The signature header must contain only:
    - One parameterised identifier.
