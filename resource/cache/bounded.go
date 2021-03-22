@@ -51,26 +51,6 @@ func NewBoundedInMemoryCache(size int) ResourceCache {
 	}
 }
 
-// Method signatures shared by lruCache and lru.TwoQueueCache.
-type cache interface {
-	Add(key, value interface{})
-	Get(key interface{}) (value interface{}, ok bool)
-}
-
-// Wrapper for *lru.Cache that elides the return value from Add, to match
-// lru.TwoQueueCache.
-type lruCache struct {
-	lru *lru.Cache
-}
-
-func (c lruCache) Add(key, value interface{}) {
-	c.lru.Add(key, value)
-}
-
-func (c lruCache) Get(key interface{}) (value interface{}, ok bool) {
-	return c.lru.Get(key)
-}
-
 type boundedCache struct {
 	cache
 }
@@ -89,4 +69,29 @@ func (c *boundedCache) Lookup(req *http.Request) (*resource.Resource, error) {
 func (c *boundedCache) Store(r *resource.Resource) error {
 	c.Add(r.RequestURL.String(), r)
 	return nil
+}
+
+type cache interface {
+	Add(key, value interface{})
+	Get(key interface{}) (value interface{}, ok bool)
+}
+
+// Compiler check that both lruCache and lru.TwoQueueCache implement cache:
+var (
+	_ cache = lruCache{}
+	_ cache = (*lru.TwoQueueCache)(nil)
+)
+
+// Wrapper for *lru.Cache that elides the return value from Add, to match
+// lru.TwoQueueCache.
+type lruCache struct {
+	lru *lru.Cache
+}
+
+func (c lruCache) Add(key, value interface{}) {
+	c.lru.Add(key, value)
+}
+
+func (c lruCache) Get(key interface{}) (value interface{}, ok bool) {
+	return c.lru.Get(key)
 }
