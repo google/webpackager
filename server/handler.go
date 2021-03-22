@@ -148,7 +148,8 @@ func (h *Handler) handleDocImpl(w http.ResponseWriter, req *http.Request, signUR
 		replyServerError(w, err)
 		return
 	}
-	if err := h.Packager.RunForRequest(newReq, timeutil.Now()); err != nil {
+	r, err := h.Packager.RunForRequest(newReq, timeutil.Now())
+	if err != nil {
 		err = filterError(err, u.String())
 		// TODO(banaag): ideally, we should pass through that error response
 		// from the upstream.
@@ -165,9 +166,8 @@ func (h *Handler) handleDocImpl(w http.ResponseWriter, req *http.Request, signUR
 			return
 		}
 	}
-	r, err := h.Packager.ResourceCache.Lookup(newReq)
-	if err != nil {
-		replyServerError(w, xerrors.Errorf("ResourceCache.Lookup: %w", err))
+	if r == nil {
+		replyServerError(w, xerrors.Errorf("no resource for %s", u.String()))
 		return
 	}
 	var body bytes.Buffer

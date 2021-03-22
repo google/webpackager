@@ -9,6 +9,7 @@ require (
 	github.com/google/go-cmp v0.5.0
 	github.com/google/renameio v0.1.0
 	github.com/hashicorp/go-multierror v1.1.0
+	github.com/hashicorp/golang-lru v0.5.1
 	github.com/jpillora/backoff v1.0.0
 	github.com/pelletier/go-toml v1.8.0
 	github.com/pquerna/cachecontrol v0.0.0-20180517163645-1555304b9b35

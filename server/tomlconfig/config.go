@@ -21,8 +21,6 @@ import (
 	"github.com/pelletier/go-toml"
 )
 
-// TODO(banaag): Add the config for ACME.
-
 // Config defines the TOML config.
 // See cmd/webpkgserver/webpkgserver.example.toml for detail.
 type Config struct {
@@ -31,6 +29,7 @@ type Config struct {
 	SXG       SXGConfig
 	Sign      SignConfig
 	Processor ProcessorConfig
+	Cache     CacheConfig
 }
 
 // ListenConfig represents the [Listen] section.
@@ -102,6 +101,11 @@ type ProcessorConfig struct {
 	SizeLimit  int `default:"4194304"`
 	PreloadCSS bool
 	PreloadJS  bool
+}
+
+// CacheConfig represents the [Cache] section.
+type CacheConfig struct {
+	MaxEntries int `default:"200"`
 }
 
 // ReadFromFile reads a Config from filename. It also validates all fields

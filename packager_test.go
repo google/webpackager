@@ -72,7 +72,7 @@ func TestSameDomain(t *testing.T) {
 	defer server.Close()
 
 	pkg := webpackager.NewPackager(makeConfig(server))
-	if err := pkg.Run(urlutil.MustParse("https://example.org/hello.html"), date); err != nil {
+	if _, err := pkg.Run(urlutil.MustParse("https://example.org/hello.html"), date); err != nil {
 		t.Fatalf("pkg.Run() = error(%q), want success", err)
 	}
 
@@ -105,7 +105,7 @@ func TestCrossDomain(t *testing.T) {
 	defer server.Close()
 
 	pkg := webpackager.NewPackager(makeConfig(server))
-	if err := pkg.Run(urlutil.MustParse("https://example.org/hello.html"), date); err != nil {
+	if _, err := pkg.Run(urlutil.MustParse("https://example.org/hello.html"), date); err != nil {
 		t.Fatalf("pkg.Run() = error(%q), want success", err)
 	}
 
@@ -142,10 +142,10 @@ func TestDupResource(t *testing.T) {
 	defer server.Close()
 
 	pkg := webpackager.NewPackager(makeConfig(server))
-	if err := pkg.Run(urlutil.MustParse("https://example.org/hello.html"), date); err != nil {
+	if _, err := pkg.Run(urlutil.MustParse("https://example.org/hello.html"), date); err != nil {
 		t.Fatalf("pkg.Run() = error(%q), want success", err)
 	}
-	if err := pkg.Run(urlutil.MustParse("https://example.org/quick.html"), date); err != nil {
+	if _, err := pkg.Run(urlutil.MustParse("https://example.org/quick.html"), date); err != nil {
 		t.Fatalf("pkg.Run() = error(%q), want success", err)
 	}
 
@@ -188,7 +188,7 @@ func TestRequestTweaker(t *testing.T) {
 	config := makeConfig(server)
 	config.RequestTweaker = fetch.SetCustomHeaders(header)
 	pkg := webpackager.NewPackager(config)
-	if err := pkg.Run(urlutil.MustParse("https://example.org/hello.html"), date); err != nil {
+	if _, err := pkg.Run(urlutil.MustParse("https://example.org/hello.html"), date); err != nil {
 		t.Fatalf("pkg.Run() = error(%q), want success", err)
 	}
 
@@ -232,7 +232,7 @@ func TestNoExchanges(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			pkg := webpackager.NewPackager(makeConfig(server))
 			url := urlutil.MustParse(test.url)
-			err := pkg.Run(url, date)
+			_, err := pkg.Run(url, date)
 
 			verifyErrorURLs(t, err, []string{test.url})
 
@@ -269,7 +269,7 @@ func TestSubresourceErrors(t *testing.T) {
 	defer server.Close()
 
 	pkg := webpackager.NewPackager(makeConfig(server))
-	err := pkg.Run(urlutil.MustParse("https://example.org/hello.html"), date)
+	_, err := pkg.Run(urlutil.MustParse("https://example.org/hello.html"), date)
 
 	// err should indicate all invalid subresources.
 	verifyErrorURLs(t, err, []string{
@@ -311,7 +311,7 @@ func TestSubresourceErrorsKeepPreloads(t *testing.T) {
 	}
 	ef.KeepNonSXGPreloads = true
 	pkg := webpackager.NewPackager(cfg)
-	err = pkg.Run(urlutil.MustParse("https://example.org/hello.html"), date)
+	_, err = pkg.Run(urlutil.MustParse("https://example.org/hello.html"), date)
 
 	// err should indicate all invalid subresources.
 	verifyErrorURLs(t, err, []string{

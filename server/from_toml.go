@@ -36,6 +36,7 @@ import (
 	"github.com/google/webpackager/processor/htmlproc"
 	"github.com/google/webpackager/processor/htmlproc/htmltask"
 	"github.com/google/webpackager/processor/preverify"
+	"github.com/google/webpackager/resource/cache"
 	"github.com/google/webpackager/server/tomlconfig"
 	"github.com/google/webpackager/urlmatcher"
 	"github.com/google/webpackager/validity"
@@ -74,6 +75,14 @@ func FromTOMLConfig(c *tomlconfig.Config) (*Server, error) {
 		Processor:       makeProcessor(c),
 		ValidPeriodRule: makeValidPeriodRule(c),
 		ExchangeFactory: exchangeFactory,
+	}
+
+	if size := c.Cache.MaxEntries; size > 0 {
+		pc.ResourceCache = cache.NewBoundedCache(size)
+	} else if size == 0 {
+		pc.ResourceCache = cache.NilCache()
+	} else {
+		pc.ResourceCache = cache.NewOnMemoryCache() // unbounded
 	}
 
 	config := Config{

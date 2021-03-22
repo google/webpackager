@@ -47,7 +47,7 @@ func run() error {
 	errs := new(multierror.Error)
 
 	for _, u := range urls {
-		if err := pkg.Run(u, date); err != nil {
+		if _, err := pkg.Run(u, date); err != nil {
 			errs = multierror.Append(errs, err)
 		}
 	}
