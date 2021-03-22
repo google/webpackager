@@ -78,7 +78,7 @@ func FromTOMLConfig(c *tomlconfig.Config) (*Server, error) {
 	}
 
 	if size := c.Cache.MaxEntries; size > 0 {
-		pc.ResourceCache = cache.NewBoundedCache(size)
+		pc.ResourceCache = cache.NewBoundedInMemoryCache(size)
 	} else if size == 0 {
 		pc.ResourceCache = cache.NilCache()
 	} else {

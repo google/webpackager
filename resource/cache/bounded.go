@@ -24,9 +24,9 @@ import (
 	"golang.org/x/xerrors"
 )
 
-// NewBoundedCache returns a new ResourceCache that stores Resources in memory,
-// with an eviction policy after `size` entries. size must be positive.
-func NewBoundedCache(size int) ResourceCache {
+// NewBoundedInMemoryCache returns a new ResourceCache that stores Resources in
+// memory, with an eviction policy after `size` entries. size must be positive.
+func NewBoundedInMemoryCache(size int) ResourceCache {
 	if size > 1 {
 		// The extra memory/CPU overhead of lru.TwoQueueCache over lru.Cache
 		// seems worth it to increase cache hit rate, given the comparatively

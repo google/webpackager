@@ -23,7 +23,7 @@ import (
 func TestBoundedCache_LRU(t *testing.T) {
 	foo := makeResource("https://example.com/foo.html")
 	bar := makeResource("https://example.com/bar.html")
-	bc := cache.NewBoundedCache(1)
+	bc := cache.NewBoundedInMemoryCache(1)
 
 	reqFoo := makeRequest("https://example.com/foo.html")
 	reqBar := makeRequest("https://example.com/bar.html")
@@ -94,7 +94,7 @@ func TestBoundedCache_2Q(t *testing.T) {
 	foo := makeResource("https://example.com/foo.html")
 	bar := makeResource("https://example.com/bar.html")
 	baz := makeResource("https://example.com/baz.html")
-	bc := cache.NewBoundedCache(2)
+	bc := cache.NewBoundedInMemoryCache(2)
 
 	reqFoo := makeRequest("https://example.com/foo.html")
 	reqBar := makeRequest("https://example.com/bar.html")
