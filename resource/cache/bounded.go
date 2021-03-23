@@ -52,11 +52,11 @@ func NewBoundedInMemoryCache(size int) ResourceCache {
 }
 
 type boundedCache struct {
-	cache
+	cache cache
 }
 
 func (c *boundedCache) Lookup(req *http.Request) (*resource.Resource, error) {
-	switch r, _ := c.Get(req.URL.String()); t := r.(type) {
+	switch r, _ := c.cache.Get(req.URL.String()); t := r.(type) {
 	case *resource.Resource:
 		return t, nil
 	case nil:
@@ -67,7 +67,7 @@ func (c *boundedCache) Lookup(req *http.Request) (*resource.Resource, error) {
 }
 
 func (c *boundedCache) Store(r *resource.Resource) error {
-	c.Add(r.RequestURL.String(), r)
+	c.cache.Add(r.RequestURL.String(), r)
 	return nil
 }
 

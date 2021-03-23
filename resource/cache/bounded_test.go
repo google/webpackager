@@ -130,7 +130,7 @@ func TestBoundedCache_2Q(t *testing.T) {
 			t.Errorf("bc.Lookup(reqBar) = %v, want %v", got, bar)
 		}
 	}
-	// bar is present.
+	// baz is present.
 	{
 		got, err := bc.Lookup(reqBaz)
 		if err != nil {
