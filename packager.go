@@ -49,10 +49,10 @@ func NewPackager(config Config) *Packager {
 //
 // Run does not run the process when ResourceCache already has an entry for
 // url.
-func (pkg *Packager) Run(url *url.URL, sxgDate time.Time) error {
+func (pkg *Packager) Run(url *url.URL, sxgDate time.Time) (*resource.Resource, error) {
 	req, err := newGetRequest(url)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	return pkg.RunForRequest(req, sxgDate)
 }
@@ -62,11 +62,15 @@ func (pkg *Packager) Run(url *url.URL, sxgDate time.Time) error {
 //
 // RunForRequest uses req directly: RequestTweaker mutates req; FetchClient
 // sends req to retrieve the HTTP response.
-func (pkg *Packager) RunForRequest(req *http.Request, sxgDate time.Time) error {
+func (pkg *Packager) RunForRequest(req *http.Request, sxgDate time.Time) (*resource.Resource, error) {
 	runner, err := newTaskRunner(pkg, sxgDate)
 	if err != nil {
-		return xerrors.Errorf("packaging: %w", err)
+		return nil, xerrors.Errorf("packaging: %w", err)
 	}
-	runner.run(nil, req, resource.NewResource(req.URL))
-	return runner.err()
+	r := resource.NewResource(req.URL)
+	runner.run(nil, req, r)
+	if err != nil {
+		return nil, xerrors.Errorf("processing: %w", err)
+	}
+	return r, runner.err()
 }

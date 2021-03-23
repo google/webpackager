@@ -15,25 +15,10 @@
 package cache_test
 
 import (
-	"net/http"
 	"testing"
 
-	"github.com/google/webpackager/internal/urlutil"
-	"github.com/google/webpackager/resource"
 	"github.com/google/webpackager/resource/cache"
 )
-
-func makeRequest(rawurl string) *http.Request {
-	req, err := http.NewRequest(http.MethodGet, rawurl, nil)
-	if err != nil {
-		panic(err)
-	}
-	return req
-}
-
-func makeResource(rawurl string) *resource.Resource {
-	return resource.NewResource(urlutil.MustParse(rawurl))
-}
 
 func TestOnMemoryCache(t *testing.T) {
 	foo := makeResource("https://example.com/foo.html")
