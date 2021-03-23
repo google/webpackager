@@ -67,10 +67,6 @@ way.
 
 [Let's Encrypt]: https://letsencrypt.org/
 
-Chrome can be configured to allow these invalid certificates with the Allow
-Signed HTTP Exchange certificates without extension experiment:
-chrome://flags/#allow-sxg-certs-without-extension.
-
 You can run Chrome with these command line flags to ignore certificate errors:
 
 ```bash
