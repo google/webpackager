@@ -5,7 +5,7 @@
 This is a draft proposal. It is not yet implemented anywhere.
 
 Google Search may implement it in the future. To ensure forward compatibility,
-use the following exact query:
+use the following exact query for now:
 
 ```html
 <meta name=supported-media content="only screen and (max-width: 640px)">
