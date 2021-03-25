@@ -4,6 +4,16 @@
 
 This is a draft proposal. It is not yet implemented anywhere.
 
+Google Search may implement it in the future. To ensure forward compatibility,
+use the following exact query:
+
+```html
+<meta name=supported-media content="only screen and (max-width: 640px)">
+```
+
+This aligns with their [`rel=alternate`
+recommendation](https://developers.google.com/search/mobile-sites/mobile-seo/separate-urls#annotation-in-the-html).
+
 ## Problem
 
 Many sites rely on serving different HTML to different devices (e.g.
