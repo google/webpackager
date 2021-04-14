@@ -4,8 +4,8 @@
 
 This is a draft proposal. It is not yet implemented anywhere.
 
-Google Search may implement it in the future. To ensure forward compatibility,
-use the following exact query:
+Google Search may implement it or some subset in the future. To increase chance
+of forward compatibility, use the following exact query:
 
 ```html
 <meta name=supported-media content="only screen and (max-width: 640px)">
