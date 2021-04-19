@@ -291,6 +291,9 @@ func TestHandleCert(t *testing.T) {
 	s, addr := setupServer(www)
 	defer s.Close()
 
+	// TODO(banaag): Insert 5 second delay to test flake theory.
+	time.Sleep(5 * time.Second)
+
 	url := "http://" + addr + "/webpkg/cert/qwk4hz4Swff9wKMvr1hri3YH4MeFAH8_PE9jnJ9nx6A"
 
 	wantBody, err := ioutil.ReadFile(cborFile)
