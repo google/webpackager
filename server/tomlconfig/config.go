@@ -50,6 +50,7 @@ type ServerConfig struct {
 	DocPath      string `default:"/priv/doc"`
 	CertPath     string `default:"/webpkg/cert"`
 	ValidityPath string `default:"/webpkg/validity"`
+	HealthPath   string `default:"/healthz"`
 	SignParam    string `default:"sign"`
 }
 

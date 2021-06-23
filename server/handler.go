@@ -62,6 +62,9 @@ type Config struct {
 	// CertManager provides the AugmentedChain to serve from this Handler.
 	CertManager *certmanager.Manager
 
+	// AllowTestCert indicates if it's ok to allow test certs.
+	AllowTestCert bool
+
 	// ServerConfig specifies the endpoints. All fields must contain a valid
 	// value as described in cmd/webpkgserver/webpkgserver.example.toml.
 	tomlconfig.ServerConfig
@@ -73,12 +76,14 @@ func NewHandler(c Config) *Handler {
 	c.DocPath = path.Clean(c.DocPath)
 	c.CertPath = path.Clean(c.CertPath)
 	c.ValidityPath = path.Clean(c.ValidityPath)
+	c.HealthPath = path.Clean(c.HealthPath)
 
 	h := &Handler{new(http.ServeMux), c}
 
 	h.mux.HandleFunc(c.CertPath+"/", h.handleCert)
 	h.mux.HandleFunc(c.DocPath, h.handleDoc)
 	h.mux.HandleFunc(c.ValidityPath, h.handleValidity)
+	h.mux.HandleFunc(c.HealthPath, h.handleHealth)
 
 	return h
 }
@@ -180,6 +185,22 @@ func (h *Handler) handleDocImpl(w http.ResponseWriter, req *http.Request, signUR
 
 func (h *Handler) handleValidity(w http.ResponseWriter, req *http.Request) {
 	replyOK(w, emptyMapCBOR, mimeTypeValidity)
+}
+
+func (h *Handler) handleHealth(w http.ResponseWriter, req *http.Request) {
+	ac := h.CertManager.GetAugmentedChain()
+	if ac == nil {
+		replyError(w, http.StatusNotFound)
+		return
+	}
+	err := ac.VerifyAll(timeutil.Now(), !h.AllowTestCert)
+	if err != nil {
+		replyServerError(w, xerrors.Errorf("not healthy: %w", err))
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("ok"))
 }
 
 func filterError(err error, url string) error {

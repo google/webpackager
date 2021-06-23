@@ -57,9 +57,11 @@ func setupServer(www *httptest.Server) (*server.Server, string) {
 			DocPath:      "/priv/doc",
 			CertPath:     "/webpkg/cert",
 			ValidityPath: "/webpkg/validity",
+			HealthPath:   "/healthz",
 			SignParam:    "sign",
 		},
-		CertManager: certManager,
+		AllowTestCert: true,
+		CertManager:   certManager,
 		Packager: webpackager.NewPackager(webpackager.Config{
 			FetchClient: fetch.WithSelector(
 				fetchtest.NewFetchClient(www),
@@ -340,6 +342,34 @@ func TestHandlerCert_DigestMismatch(t *testing.T) {
 
 	if got := resp.StatusCode; got != http.StatusNotFound {
 		t.Errorf("StatusCode = %v, want %v", got, http.StatusNotFound)
+	}
+}
+
+func TestHandleHealth(t *testing.T) {
+	www := setupContentServer()
+	defer www.Close()
+	s, addr := setupServer(www)
+	defer s.Close()
+
+	url := "http://" + addr + "/healthz"
+	wantBody := []uint8{0x6f, 0x6b} // "ok"
+
+	resp, err := http.Get(url)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+
+	if got := resp.StatusCode; got != http.StatusOK {
+		t.Errorf("StatusCode = %v, want %v", got, http.StatusOK)
+	}
+
+	gotBody, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if diff := cmp.Diff(wantBody, gotBody); diff != "" {
+		t.Errorf("Body mismatch (-want +got):\n%s", diff)
 	}
 }
 

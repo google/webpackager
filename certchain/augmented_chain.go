@@ -138,25 +138,28 @@ func (ac *AugmentedChain) WriteCBOR(w io.Writer) error {
 //   - ac.OCSPResp.VerifyForRawChain succeeds.
 //   - ac.OCSPResp.VerifySXGCriteria succeeds.
 //   - ac.HasSCTList returns true.
+// If inProduction is true, allow test certs and OCSP to have dummy value.
 //
 // VerifyAll returns a multierror.Error (hashicorp/go-multierror) to report
 // as many problems as possible.
-func (ac *AugmentedChain) VerifyAll(t time.Time) error {
+func (ac *AugmentedChain) VerifyAll(t time.Time, inProduction bool) error {
 	var errs *multierror.Error
 
 	errs = multierror.Append(errs, ac.RawChain.VerifyChain(t))
 	errs = multierror.Append(errs, ac.RawChain.VerifySXGCriteria())
 
-	if ac.OCSPResp == DummyOCSPResponse {
-		// Avoid ErrDummyOCSResponse being appended twice.
-		errs = multierror.Append(errs, ErrDummyOCSPResponse)
-	} else {
-		errs = multierror.Append(errs, ac.OCSPResp.VerifyForRawChain(t, ac.RawChain))
-		errs = multierror.Append(errs, ac.OCSPResp.VerifySXGCriteria())
-	}
+	if inProduction {
+		if ac.OCSPResp == DummyOCSPResponse {
+			// Avoid ErrDummyOCSResponse being appended twice.
+			errs = multierror.Append(errs, ErrDummyOCSPResponse)
+		} else {
+			errs = multierror.Append(errs, ac.OCSPResp.VerifyForRawChain(t, ac.RawChain))
+			errs = multierror.Append(errs, ac.OCSPResp.VerifySXGCriteria())
+		}
 
-	if !ac.HasSCTList() {
-		errs = multierror.Append(errs, errors.New("certchain: missing SCTs"))
+		if !ac.HasSCTList() {
+			errs = multierror.Append(errs, errors.New("certchain: missing SCTs"))
+		}
 	}
 
 	return errs.ErrorOrNil()
