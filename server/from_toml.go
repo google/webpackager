@@ -86,9 +86,10 @@ func FromTOMLConfig(c *tomlconfig.Config) (*Server, error) {
 	}
 
 	config := Config{
-		Packager:     webpackager.NewPackager(pc),
-		CertManager:  exchangeFactory.CertManager,
-		ServerConfig: c.Server,
+		Packager:      webpackager.NewPackager(pc),
+		CertManager:   exchangeFactory.CertManager,
+		ServerConfig:  c.Server,
+		AllowTestCert: c.SXG.Cert.AllowTestCert,
 	}
 
 	return NewServer(server, config), nil
