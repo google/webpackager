@@ -163,7 +163,7 @@ func (h *Handler) handleDocImpl(w http.ResponseWriter, req *http.Request, signUR
 			return
 		}
 		if xerrors.Is(err, fetch.ErrURLMismatch) {
-			replyClientError(w, err)
+			replyClientErrorSilent(w)
 			return
 		}
 		if err != nil {

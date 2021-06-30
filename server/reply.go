@@ -41,6 +41,10 @@ func replyClientError(w http.ResponseWriter, err error) {
 	replyError(w, http.StatusBadRequest)
 }
 
+func replyClientErrorSilent(w http.ResponseWriter) {
+	replyError(w, http.StatusBadRequest)
+}
+
 func replyError(w http.ResponseWriter, code int) {
 	http.Error(w, fmt.Sprintf("%d %s", code, http.StatusText(code)), code)
 }
