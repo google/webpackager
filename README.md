@@ -1,6 +1,6 @@
 # Web Packager
 
-[![Build Status](https://travis-ci.org/google/webpackager.svg?branch=master)](https://travis-ci.org/google/webpackager)
+[![Build Status](https://travis-ci.org/google/webpackager.svg?branch=main)](https://travis-ci.org/google/webpackager)
 [![GoDoc](https://godoc.org/github.com/google/webpackager?status.svg)](https://godoc.org/github.com/google/webpackager)
 
 Web Packager is a command-line tool to "package" websites in accordance
@@ -10,7 +10,7 @@ focuses on automating generation of Signed HTTP Exchanges (aka. SXGs) and
 optimizing the page loading.
 
 [WICG/webpackage]: https://github.com/WICG/webpackage/
-[gen-signedexchange]: https://github.com/WICG/webpackage/tree/master/go/signedexchange
+[gen-signedexchange]: https://github.com/WICG/webpackage/tree/main/go/signedexchange
 
 Web Packager HTTP Server is an HTTP server built on top of Web Packager.
 It functions like a reverse-proxy, receiving signing requests over HTTP.
@@ -58,9 +58,9 @@ Then you will need to convert your certificate into
 the [application/cert-chain+cbor][] format, which you can do using the
 instructions at:
 
-*   [Creating our first signed exchange](https://github.com/WICG/webpackage/blob/master/go/signedexchange/README.md#creating-our-first-signed-exchange)
+*   [Creating our first signed exchange](https://github.com/WICG/webpackage/blob/main/go/signedexchange/README.md#creating-our-first-signed-exchange)
     to generate a self-signed certificate for testing.
-*   [Creating a signed exchange using a trusted certificate](https://github.com/WICG/webpackage/blob/master/go/signedexchange/README.md#creating-a-signed-exchange-using-a-trusted-certificate)
+*   [Creating a signed exchange using a trusted certificate](https://github.com/WICG/webpackage/blob/main/go/signedexchange/README.md#creating-a-signed-exchange-using-a-trusted-certificate)
     to use a CA-issued certificate.
 
 [application/cert-chain+cbor]: https://wicg.github.io/webpackage/draft-yasskin-http-origin-signed-responses.html#cert-chain-format

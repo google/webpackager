@@ -38,7 +38,7 @@ var ExtractPreloadHeaders processor.Processor = &extractPreloadHeaders{}
 var keepNonPreloadLinkHeaders = false
 
 // maxNumPreloads is the maximum number of preload links allowed by WebPackager.
-// This exists to satisfy: https://github.com/google/webpackager/blob/master/docs/cache_requirements.md.
+// This exists to satisfy: https://github.com/google/webpackager/blob/main/docs/cache_requirements.md.
 const maxNumPreloads = 20
 
 type extractPreloadHeaders struct{}

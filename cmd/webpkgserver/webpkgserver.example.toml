@@ -143,7 +143,7 @@
   #     Link: <https://example.org/nonexistent.css>;rel="preload";as="style"
   #
   # For more detail about allowed-alt-sxg, see:
-  # https://github.com/horo-t/subresource-signed-exchange/blob/master/signed-exchange-subresource-subtitution-explainer.md
+  # https://github.com/WICG/webpackage/blob/main/explainers/signed-exchange-subresource-substitution.md
   #KeepNonSXGPreloads = false
 
 # Specify the certificate to use. For development, set AllowTestCert to true,
