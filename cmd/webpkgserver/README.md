@@ -19,7 +19,7 @@ in the repository root.
 
 [AMP]: https://amp.dev/
 [AMP Packager]: https://github.com/ampproject/amppackager
-[requirements]: https://github.com/google/webpackager/blob/master/docs/cache_requirements.md
+[requirements]: https://github.com/google/webpackager/blob/main/docs/cache_requirements.md
 [Web Packager]: https://github.com/google/webpackager
 
 ## Prerequisites
@@ -166,7 +166,7 @@ $ dump-signedexchange -i out.sxg -verify
 
 Please check that the content-body is not empty when you are doing your tests.
 
-[dump-signedexchange]: https://github.com/WICG/webpackage/tree/master/go/signedexchange#dump-a-signed-exchange-file
+[dump-signedexchange]: https://github.com/WICG/webpackage/tree/main/go/signedexchange#dump-a-signed-exchange-file
 
 ## Running behind Front-end Edge Server
 
@@ -246,7 +246,7 @@ Here are details on how different web server setups handle accept headers:
     <VirtualHost *:443>
     Protocols  http/1.1
     ServerName www.example.com
-    ServerAdmin webmaster@localhost
+    ServerAdmin webadmin@localhost
     DocumentRoot /usr/local/apache2/htdocs/
 
     <Directory "/usr/local/apache2/htdocs/sxg_test/">

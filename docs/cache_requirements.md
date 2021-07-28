@@ -61,7 +61,7 @@ The Google SXG cache sets these requirements in addition to the ones set by the
 [`media-type` grammar]: https://tools.ietf.org/html/rfc7231#section-3.1.1.5
 [Loading spec]: https://wicg.github.io/webpackage/loading.html#subresource-substitution
 [Link spec]: https://tools.ietf.org/html/rfc5988#section-5
-[SXG-preferring `Accept` header]: https://github.com/google/webpackager/tree/master/cmd/webpkgserver#content-negotiation
+[SXG-preferring `Accept` header]: https://github.com/google/webpackager/tree/main/cmd/webpkgserver#content-negotiation
 
 Some of the above limitations are overly strict for an SXG cache's needs, and
 were implemented as such for the sake of expediency. They may be loosened over
