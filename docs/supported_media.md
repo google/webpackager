@@ -5,7 +5,7 @@
 This is a draft proposal. It is not yet implemented anywhere.
 
 Google Search may implement it or some subset in the future. To increase chance
-of forward compatibility, use the following exact query:
+of forward compatibility, use the following exact tag for mobile-only HTML:
 
 ```html
 <meta name=supported-media content="only screen and (max-width: 640px)">
