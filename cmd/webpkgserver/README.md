@@ -222,14 +222,13 @@ that makes it possible to serve different versions of a document (or more
 generally, a resource representation) at the same URI, so that user agents can
 specify which version fits their capabilities the best.
 
-For a given URL, Googlebot will request `application/signed-exchange;v=b3`
-with [q-value][] equal to that of text/html, while Chromium browsers will
-request it with q-score less than text/html, and other browsers won't
-specify it at all (but may include `*/*`). Publishers should only serve SXG
-to crawlers, based on that accept header. Based on the team’s experience,
-it is difficult to set up an edge server that accurately handles headers
-with q-scores. We therefore recommend matching on an Accept directive with
-the following regular expression:
+For a given URL, Googlebot will request `application/signed-exchange;v=b3` with
+a [q-value][] equal to 1, while Chromium browsers will request it with q-score
+less than 1, and other browsers won't specify it at all (but may include
+`*/*`). Publishers should only serve SXG to crawlers, based on that accept
+header. Based on the team’s experience, it is difficult to set up an edge
+server that accurately handles headers with q-scores. We therefore recommend
+matching on an Accept directive with the following regular expression:
 
     ```
     Accept: /(^|,)\s*application\/signed-exchange\s*;\s*v=[[:alnum:]_-]+\s*(,|$)/
