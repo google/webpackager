@@ -11,6 +11,12 @@ of forward compatibility, use the following exact tag for mobile-only HTML:
 <meta name=supported-media content="only screen and (max-width: 640px)">
 ```
 
+and the following exact tag for desktop-only HTML:
+
+```html
+<meta name=supported-media content="only screen and (min-width: 640px)">
+```
+
 This aligns with their [`rel=alternate`
 recommendation](https://developers.google.com/search/mobile-sites/mobile-seo/separate-urls#annotation-in-the-html).
 
