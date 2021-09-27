@@ -117,7 +117,9 @@ func (d *MultiCertDiskCache) Read(digest string) (*certchain.AugmentedChain, err
 		errs = multierror.Append(errs, ErrNotFound)
 	}
 	ocspResp, err := certchainutil.ReadOCSPRespFile(ocsp)
-	errs = multierror.Append(errs, err)
+	if err != nil {
+		errs = multierror.Append(errs, ErrNotFound)
+	}
 
 	var augChain *certchain.AugmentedChain
 	if errs.ErrorOrNil() == nil {
