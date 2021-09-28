@@ -81,9 +81,15 @@ func (d *SingleCertDiskCache) ReadLatest() (*certchain.AugmentedChain, error) {
 	}
 
 	rawChain, err := certchainutil.ReadRawChainFile(d.CertPath)
-	errs = multierror.Append(errs, err)
+	if err != nil {
+		errs = multierror.Append(errs, ErrNotFound)
+		errs = multierror.Append(errs, err)
+	}
 	ocspResp, err := certchainutil.ReadOCSPRespFile(d.OCSPPath)
-	errs = multierror.Append(errs, err)
+	if err != nil {
+		errs = multierror.Append(errs, ErrNotFound)
+		errs = multierror.Append(errs, err)
+	}
 
 	var augChain *certchain.AugmentedChain
 	if errs.ErrorOrNil() == nil {
