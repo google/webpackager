@@ -116,7 +116,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 func (h *Handler) handleCert(w http.ResponseWriter, req *http.Request) {
 	digest := strings.TrimPrefix(req.URL.Path, h.CertPath+"/")
 	ac, err := h.CertManager.Cache.Read(digest)
-	if err == certmanager.ErrNotFound {
+	if errors.Is(err, certmanager.ErrNotFound) {
 		replyError(w, http.StatusNotFound)
 		return
 	}
