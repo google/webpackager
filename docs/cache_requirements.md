@@ -60,7 +60,7 @@ The Google SXG cache sets these requirements in addition to the ones set by the
 [SXG spec]: https://wicg.github.io/webpackage/draft-yasskin-http-origin-signed-responses.html
 [`media-type` grammar]: https://tools.ietf.org/html/rfc7231#section-3.1.1.5
 [Loading spec]: https://wicg.github.io/webpackage/loading.html#subresource-substitution
-[Link spec]: https://tools.ietf.org/html/rfc5988#section-5
+[Link spec]: https://datatracker.ietf.org/doc/html/rfc8288#section-3
 [SXG-preferring `Accept` header]: https://github.com/google/webpackager/tree/main/cmd/webpkgserver#content-negotiation
 
 Some of the above limitations are overly strict for an SXG cache's needs, and
