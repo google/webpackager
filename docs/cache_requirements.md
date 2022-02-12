@@ -76,24 +76,21 @@ please file an issue.
 
 # Testing
 
-There is no known publicly available tool for validating an SXG against the
-above requirements, though one is certainly welcome. In the interim, one may
-send an HTTP request to the Google SXG Cache and see if the response is a valid
-SXG.
+For SXGs on the internet, one can use the [SXG Validator Chrome extension](https://chrome.google.com/webstore/detail/sxg-validator/hiijcdgcphjeljafieaejfhodfbpmgoe). This queries the Google SXG Cache to see if the SXG meets the above requirements.
 
-Meets requirements:
+Alternatively, one can query the cache directly. This is an example that meets the requirements:
 
 ```
-$ curl -s -i -H 'Accept: application/signed-exchange;v=b3' https://signed--exchange--testing-dev.webpkgcache.com/doc/-/s/signed-exchange-testing.dev/sxgs/valid.html | grep -a -i content-type:
+$ curl -siH 'Accept: application/signed-exchange;v=b3' https://signed--exchange--testing-dev.webpkgcache.com/doc/-/s/signed-exchange-testing.dev/sxgs/valid.html | grep -aiE 'content-type:|warning:'
 content-type: application/signed-exchange;v=b3
 ```
 
-Does not meet requirements:
+and this does not meet requirements:
 
 ```
-$ curl -s -i -H 'Accept: application/signed-exchange;v=b3' https://signed--exchange--testing-dev.webpkgcache.com/doc/-/s/signed-exchange-testing.dev/sxgs/invalid-signature-date.html | grep -a -i content-type:
+$ curl -siH 'Accept: application/signed-exchange;v=b3' https://signed--exchange--testing-dev.webpkgcache.com/doc/-/s/signed-exchange-testing.dev/sxgs/invalid-signature-date.html | grep -aiE 'content-type:|warning:'
+warning: 199 - "debug: content has ingestion error: SXG ingestion failure: sig_date is in the future"
 content-type: text/html; charset=UTF-8
 ```
 
-Note that new documents may appear not to meet the requirements at first; cache
-ingestion is asynchronous.
+Cache ingestion is asynchronous. Documents not yet ingested will have a `text/html` content type but no `Warning` header.
