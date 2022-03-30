@@ -5,10 +5,10 @@ requirements](https://github.com/ampproject/amppackager/blob/releases/docs/cache
 for signed exchanges.
 
 The original reasoning for the latter was to validate that AMP SXGs were at
-parity with the stronger constraints of AMP. Today, if an AMP page is signed
-meeting the new SXG Cache requirements instead of the AMP Cache requirements,
-its SXG is considered invalid. However, the AMP itself may still be considered
-valid, and served like typical AMP. Some tools like [AMP
+parity with the stronger constraints of AMP. Today, if an AMP page is signed,
+but it meets the new SXG Cache requirements instead of the AMP Cache
+requirements, its SXG is considered invalid. However, the AMP itself may still
+be considered valid, and served like typical AMP. Some tools like [AMP
 Packager](https://github.com/ampproject/amppackager) and [Cloudflare AMP Real
 URL](https://blog.cloudflare.com/announcing-amp-real-url/) are designed to meet
 the AMP SXG requirements.
@@ -29,7 +29,7 @@ For sites with a mix of AMP and non-AMP, it may be acceptable to run a general
 tool to speed up page loads. The only downside is the presence of [Search
 Console
 warnings](https://support.google.com/webmasters/answer/7450883#sgx_warning_list)
-that indicate that AMP is being treated as typical, instead of as a SXG.
+that indicate that AMP is being treated as typical, instead of as an SXG.
 
 It may be possible to meet the AMP SXG requirements using a general tool,
 though this is not well-tested. For instance:
@@ -42,4 +42,6 @@ though this is not well-tested. For instance:
    to any `<link rel=preload>` tags. This will prevent Cloudflare Automatic
    Signed Exchanges from turning them into Link headers that wouldn't meet the
    AMP SXG requirements.
- - Other changes may be required.
+ - Set a `Cache-Control: max-age` of at least `345600` (4 days).
+ - Additional changes may be required; please suggest updates to this doc if
+   you discover any.
