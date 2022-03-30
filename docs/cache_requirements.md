@@ -74,6 +74,9 @@ useful for publishers and users, however, if the requirements were the same
 across all caches. If you see a need for a different requirement on your cache,
 please file an issue.
 
+The Google AMP Cache has a different set of requirements for SXGs. See [advice
+for sites with a mix of AMP and non-AMP](amp_cache_differences.md).
+
 # Testing
 
 For SXGs on the internet, one can use the [SXG Validator Chrome extension](https://chrome.google.com/webstore/detail/sxg-validator/hiijcdgcphjeljafieaejfhodfbpmgoe). This queries the Google SXG Cache to see if the SXG meets the above requirements.
