@@ -48,6 +48,7 @@ in the repository root.
         verification, please remember to turn off the privacy settings for your
         WHOIS record.
     *   [Creating an ECC CSR (Certificate Signing Request)][CSR].
+    *   Use this ACME Directory for requesting SXG certs from Google CA: https://dv-sxg.acme-v02.api.pki.goog/
 
 [golang]: https://golang.org/doc/install
 [CanSignHttpExchanges]: https://wicg.github.io/webpackage/draft-yasskin-http-origin-signed-responses.html#cross-origin-cert-req
@@ -135,8 +136,10 @@ information needed for creating signed exchanges:
 
 If you want to use ACME, the following section of the toml file also needs to be filled in.
 Note that EABKid and EABHmac are what's issued by trust services like [Google][] and [DigiCert][].
+When requesting SXG certs from Google CA, use the following [Google SXG ACME] directory.
 
 [Google]: https://cloud.google.com/blog/products/identity-security/automate-public-certificate-lifecycle-management-via--acme-client-api
+[Google SXG ACME]: https://dv-sxg.acme-v02.api.pki.goog/directory
 [DigiCert]: https://dev.digicert.com/services-api/api-keys/acme-external-account-binding/
 ```
 [SXG.ACME]
@@ -148,8 +151,11 @@ Note that EABKid and EABHmac are what's issued by trust services like [Google][]
   CSRFile = "path/to/csr.pem"
 
   # The ACME discovery URL. It is specified by the Certificate Authority that
-  # doles out your certificates. As of August 2020, only DigiCert supports
+  # doles out your certificates. As of April 2022, DigiCert and Google supports
   # automatic renewals of signed exchange certificate:
+  # https://cloud.devsite.corp.google.com/public-certificate-authority/docs
+  # (Use this production ACME directory: https://dv-sxg.acme-v02.api.pki.goog/directory)
+  #
   # https://docs.digicert.com/certificate-tools/acme-user-guide/acme-directory-urls-signed-http-exchange-certificates/
   # Required when ACME is enabled.
   DiscoveryURL = '<Your Discovery URL>'
