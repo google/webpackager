@@ -40,7 +40,7 @@ in the repository root.
     *   have the [CanSignHttpExchanges][] extension.
     *   last no longer than 90 days.
 
-    Currently only [DigiCert][] and [Google][] offers these types of certificates. Please
+    Currently only [DigiCert][] and [Google][] offer these types of certificates. Please
     follow the instructions on their page regarding what needs to be done to
     order your certificate.  In particular, take note of:
 
