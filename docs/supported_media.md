@@ -12,7 +12,7 @@ This tag could be used for a mobile-only page:
 <meta name=supported-media content="only screen and (max-width: 640px)">
 ```
 
-The tag could be used for a desktop-only page:
+This tag could be used for a desktop-only page:
 
 ```html
 <meta name=supported-media content="only screen and (min-width: 640px)">
