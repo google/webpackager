@@ -40,7 +40,7 @@ in the repository root.
     *   have the [CanSignHttpExchanges][] extension.
     *   last no longer than 90 days.
 
-    Currently only [DigiCert][] offers these types of certificates. Please
+    Currently only [DigiCert][] and [Google][] offer these types of certificates. Please
     follow the instructions on their page regarding what needs to be done to
     order your certificate.  In particular, take note of:
 
@@ -48,10 +48,12 @@ in the repository root.
         verification, please remember to turn off the privacy settings for your
         WHOIS record.
     *   [Creating an ECC CSR (Certificate Signing Request)][CSR].
+    *   Use this ACME Directory for requesting SXG certs from Google CA: https://dv-sxg.acme-v02.api.pki.goog/
 
 [golang]: https://golang.org/doc/install
 [CanSignHttpExchanges]: https://wicg.github.io/webpackage/draft-yasskin-http-origin-signed-responses.html#cross-origin-cert-req
 [DigiCert]: https://www.digicert.com/account/ietf/http-signed-exchange.php
+[Google]: https://cloud.google.com/blog/products/identity-security/automate-public-certificate-lifecycle-management-via--acme-client-api
 [CAA]: https://docs.digicert.com/manage-certificates/certificate-profile-options/get-your-signed-http-exchange-certificate/#set-up-your-domains-caa-resource-record
 [CSR]: https://docs.digicert.com/manage-certificates/certificate-profile-options/get-your-signed-http-exchange-certificate/#create-an-ecc-csr
 
@@ -131,6 +133,89 @@ information needed for creating signed exchanges:
     # supposed to cover this domain.
     Domain = 'example.com'
 ```
+
+If you want to use ACME, the following section of the toml file also needs to be filled in.
+Note that EABKid and EABHmac are what's issued by trust services like [Google][] and [DigiCert][].
+When requesting SXG certs from Google CA, use the following [Google SXG ACME] directory.
+
+[Google]: https://cloud.google.com/blog/products/identity-security/automate-public-certificate-lifecycle-management-via--acme-client-api
+[Google SXG ACME]: https://dv-sxg.acme-v02.api.pki.goog/directory
+[DigiCert]: https://dev.digicert.com/services-api/api-keys/acme-external-account-binding/
+```
+[SXG.ACME]
+  # Enable webpkgserver to attempt to auto renew certificates using ACME.
+  #Enable = false 
+
+  # The path to the Certificate Signing Request PEM file.
+  # Required when ACME is enabled.
+  CSRFile = "path/to/csr.pem"
+
+  # The ACME discovery URL. It is specified by the Certificate Authority that
+  # doles out your certificates. As of April 2022, DigiCert and Google supports
+  # automatic renewals of signed exchange certificate:
+  # https://cloud.devsite.corp.google.com/public-certificate-authority/docs
+  # (Use this production ACME directory: https://dv-sxg.acme-v02.api.pki.goog/directory)
+  #
+  # https://docs.digicert.com/certificate-tools/acme-user-guide/acme-directory-urls-signed-http-exchange-certificates/
+  # Required when ACME is enabled.
+  DiscoveryURL = '<Your Discovery URL>'
+
+  # The email address registered to the Certificate Authority for your signed
+  # exchange certificates.
+  # Required when ACME is enabled.
+  Email = 'user@example.com'
+
+  # The EABKid and EABHmac need to have synchronized values.  They can both be empty (in which case EAB is not used)
+  # or both have valid values. If one is empty and the other is not, the Web Packager will generate an error.
+  # This is the Key Identifier from ACME CA. Used for External Account Binding.
+  #EABKid = "eab.kid"
+
+  # This is the MAC Key from ACME CA. Used for External Account Binding. Should be in
+  # Base64 URL Encoding without padding format.
+  #EABHmac = "eab.hmac"
+
+  # For the remaining configuration items, it is important to understand the
+  # different challenges employed as part of the ACME protocol:
+  # https://ietf-wg-acme.github.io/acme/draft-ietf-acme-acme.html#identifier-validation-challenges
+  # https://letsencrypt.org/docs/challenge-types/
+  # https://certbot.eff.org/docs/challenges.html/
+  #
+  # Note that you do not need to set the fields for all of these challenges. It
+  # is typically sufficient to have a setting for just one of the challenges. If
+  # more than one method is configured, the go-acme/lego library will decide
+  # pick one of them for primary use and use other settings as backup. For
+  # wildcard certificates, nevertheless, DNSProvider is the only supported
+  # method of validation, and others cannot be used. See DNSProvider for more
+  # detail.
+
+  # The http server root directory where the ACME http challenge token should
+  # be deposited. 
+  HTTPWebRootDir = '/path/to/www_root_dir'
+
+  # The port used by the webpkgserver to respond to the HTTP challenge
+  # issued as part of ACME protocol. You will need to configure your
+  # reverse-proxy server where you route the challenge requests to this port
+  # using proxy_pass on NGINX or a similar mechanism on the server of your
+  # choice. An example specific to NGINX:
+  # https://medium.com/@dipeshwagle/add-https-using-lets-encrypt-to-nginx-configured-as-a-reverse-proxy-on-ubuntu-b4455a729176
+  HTTPChallengePort = 5002
+
+  # The port used by webpkgserver to respond to the TLS challenge issued as part
+  # of the ACME protocol.
+  TLSChallengePort = 5003
+
+  # The DNS Provider to be used for fulfilling the ACME DNS challenge.
+  # For the DNS challenge, you need to set certain environment variables
+  # which depend on the DNS provider that you use to fulfill the DNS challenge:
+  # https://go-acme.github.io/lego/dns/
+  # To use DNSProvider, you need to build webpkgserver with
+  # `go build -tags dns01`; it is disabled by default because it bloats the
+  # binary.
+  #
+  # Note that you only need the DNS challenge setup if you have wildcard
+  # certificates: https://en.wikipedia.org/wiki/Wildcard_certificate
+  #DNSProvider = '' 
+  ```
 
 Then run:
 

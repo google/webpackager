@@ -249,8 +249,11 @@
   CSRFile = "path/to/csr.pem"
 
   # The ACME discovery URL. It is specified by the Certificate Authority that
-  # doles out your certificates. As of August 2020, only DigiCert supports
+  # doles out your certificates. As of April 2022, DigiCert and Google supports
   # automatic renewals of signed exchange certificate:
+  # https://cloud.devsite.corp.google.com/public-certificate-authority/docs
+  # (Use this production ACME directory: https://dv-sxg.acme-v02.api.pki.goog/directory)
+  #
   # https://docs.digicert.com/certificate-tools/acme-user-guide/acme-directory-urls-signed-http-exchange-certificates/
   # Required when ACME is enabled.
   DiscoveryURL = '<Your Discovery URL>'
