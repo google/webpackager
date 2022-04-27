@@ -2,7 +2,7 @@
 
 ## Status
 
-This is a draft proposal. Google Search will implement it in the near future.
+Google Search will implement this proposal in the near future.
 
 ## Examples
 
