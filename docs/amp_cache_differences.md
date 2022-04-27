@@ -25,9 +25,12 @@ they wish to fix their URLs, use an AMP tool. If their site is primarily
 non-AMP and they wish to speed up page loads with prefetching, use a general
 tool.
 
-For sites with a mix of AMP and non-AMP, it may be acceptable to run a general
-tool to speed up page loads. The only downside is the presence of [Search
-Console
+For sites with a mix of AMP and non-AMP, they could run both, and use URL
+patterns to forward requests as appropriate.
+
+Alternatively, to speed up non-AMP page loads but not fix AMP URLs, it may be
+acceptable to run a general tool only. The only downside is the presence of
+[Search Console
 warnings](https://support.google.com/webmasters/answer/7450883#sgx_warning_list)
 that indicate that AMP is being treated as typical, instead of as an SXG.
 
