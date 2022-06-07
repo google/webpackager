@@ -2,7 +2,7 @@
 
 ## Status
 
-Google Search will implement this proposal in the near future.
+Google Search implements this proposal for signed exchanges.
 
 ## Examples
 
