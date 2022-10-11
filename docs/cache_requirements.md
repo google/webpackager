@@ -25,7 +25,7 @@ The Google SXG cache sets these requirements in addition to the ones set by the
  - The signed `cert-url` must be `https`.
  - The signature header must contain only:
    - One parameterised identifier.
-   - Parameter values of type string, binary, or identifier.
+   - Parameter values of type string, binary, or integer.
  - The payload must be non-empty.
  - The signed `cache-control` header cannot have a `no-cache` or `private`
    directive, even with a value (e.g. `no-cache=some-header` is disallowed).
@@ -50,13 +50,12 @@ The Google SXG cache sets these requirements in addition to the ones set by the
  - The `link` header must not be present on subresources, i.e. SXGs that are
    themselves preloaded from other SXGs.
  - There must not be a signed `variant-key-04` or `variants-04` header.
- - The `vary` header, if present, must not contain `cookie`.
  - The signature's lifetime (`expires` minutes request time) must be >= 120
    seconds.
  - The SXG must be no larger than 8 megabytes.
- - The page should be responsive, i.e. correct on all media. (In the future, a
-   [supported-media](supported_media.md) annotation should allow this
-   constraint to be removed.)
+ - The page should be responsive, i.e. correct on all media, or contain a
+   [supported-media](supported_media.md) annotation to indicate which media
+   it supports.
 
 [SXG spec]: https://wicg.github.io/webpackage/draft-yasskin-http-origin-signed-responses.html
 [`media-type` grammar]: https://tools.ietf.org/html/rfc7231#section-3.1.1.5
