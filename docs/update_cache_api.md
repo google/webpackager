@@ -113,8 +113,7 @@ the file using other algorithms, rather than mark the entire file as invalid.
 
 ## Signature format
 The signed message should be the request path exactly as sent to webpkgcache.com, e.g. 
-<code>`/doc/-/s/signed-exchange-testing.dev/sxgs/valid.html`</code>, followed by a newline, followed by
-the value of the timestamp parameter. The signature should be base64-encoded using the
+<code>`/doc/-/s/signed-exchange-testing.dev/sxgs/valid.html`</code>, followed by a space (ASCII 0x20), followed by the value of the timestamp parameter. The signature should be base64-encoded using the
 [URL-safe without base64 padding](https://datatracker.ietf.org/doc/html/rfc4648#section-5) variant.
 
 # Output / Errors
